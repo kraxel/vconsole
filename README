@@ -30,11 +30,6 @@ that).
 Known issues / TODO list
 ========================
 
-Dialog asking for a libvirt uri isn't implemented yet, so you have to
-use the -c command line switch.  vconsole will remember successful
-connects though and offer the hosts in a menu, so you have to do that
-only once per host.
-
 vconsole doesn't handle undefining domains yet.
 
 vconsole doesn't handle connection drops (caused by libvirtd restart
