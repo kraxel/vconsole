@@ -279,6 +279,7 @@ static const GtkActionEntry entries[] = {
 	.name        = "CloseTab",
 	.stock_id    = GTK_STOCK_CLOSE,
 	.label       = "Close _Tab",
+        .tooltip     = "Close Tab",
 	.accelerator = "<control>T",
 	.callback    = G_CALLBACK(menu_cb_close_tab),
     },{
@@ -309,6 +310,7 @@ static const GtkActionEntry entries[] = {
 	.name        = "GuestRun",
 	.stock_id    = GTK_STOCK_MEDIA_PLAY,
 	.label       = "Start",
+        .tooltip     = "Start Guest",
 	.callback    = G_CALLBACK(menu_cb_vm_run),
 
     },{
@@ -353,6 +355,8 @@ static char ui_xml[] =
 "    </menu>\n"
 "  </menubar>\n"
 "  <toolbar action='ToolBar'>"
+"    <toolitem action='CloseTab'/>\n"
+"    <separator/>\n"
 "    <toolitem action='GuestRun'/>\n"
 "  </toolbar>\n"
 "</ui>\n";
@@ -666,6 +670,7 @@ main(int argc, char *argv[])
     win = vconsole_toplevel_create();
     vconsole_tab_list_create(win);
     gtk_widget_show_all(win->toplevel);
+    gtk_widget_grab_focus(win->notebook);
 
     if (uri)
         connect_init(win, uri);
