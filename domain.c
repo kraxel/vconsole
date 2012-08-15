@@ -249,9 +249,11 @@ void domain_activate(struct vconsole_domain *dom)
     struct vconsole_window *win = dom->conn->win;
     GtkWidget *label, *fstatus;
     const char *name;
+    gint page;
 
     if (dom->vte) {
-        gtk_notebook_set_current_page(GTK_NOTEBOOK(win->notebook), dom->page);
+        page = gtk_notebook_page_num(GTK_NOTEBOOK(win->notebook), dom->vbox);
+        gtk_notebook_set_current_page(GTK_NOTEBOOK(win->notebook), page);
     } else {
         name = virDomainGetName(d);
         if (debug)
@@ -273,10 +275,10 @@ void domain_activate(struct vconsole_domain *dom)
         gtk_container_add(GTK_CONTAINER(fstatus), dom->status);
 
         label = gtk_label_new(name);
-        dom->page = gtk_notebook_insert_page(GTK_NOTEBOOK(win->notebook),
-                                             dom->vbox, label, -1);
+        page = gtk_notebook_insert_page(GTK_NOTEBOOK(win->notebook),
+                                        dom->vbox, label, -1);
         gtk_widget_show_all(dom->vbox);
-        gtk_notebook_set_current_page(GTK_NOTEBOOK(win->notebook), dom->page);
+        gtk_notebook_set_current_page(GTK_NOTEBOOK(win->notebook), page);
         domain_configure_vte(dom);
         domain_update_status(dom);
     }
@@ -287,9 +289,12 @@ void domain_activate(struct vconsole_domain *dom)
 static void domain_close_tab(struct vconsole_domain *dom)
 {
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
+    GtkNotebook *notebook = GTK_NOTEBOOK(dom->conn->win->notebook);
+    gint page;
 
     domain_disconnect(dom, d);
-    gtk_notebook_remove_page(GTK_NOTEBOOK(dom->conn->win->notebook), dom->page);
+    page = gtk_notebook_page_num(notebook, dom->vbox);
+    gtk_notebook_remove_page(notebook, page);
     dom->vbox = NULL;
     dom->vte = NULL;
     dom->status = NULL;
@@ -300,9 +305,9 @@ static struct vconsole_domain *domain_find_current_tab(struct vconsole_window *w
     GtkTreeModel *model = GTK_TREE_MODEL(win->store);
     GtkTreeIter host, guest;
     struct vconsole_domain *dom;
-    int rc, page;
+    int rc, cpage, dpage;
 
-    page = gtk_notebook_get_current_page(GTK_NOTEBOOK(win->notebook));
+    cpage = gtk_notebook_get_current_page(GTK_NOTEBOOK(win->notebook));
     rc = gtk_tree_model_get_iter_first(model, &host);
     while (rc) {
         rc = gtk_tree_model_iter_nth_child(model, &guest, &host, 0);
@@ -310,8 +315,10 @@ static struct vconsole_domain *domain_find_current_tab(struct vconsole_window *w
             gtk_tree_model_get(model, &guest,
                                DPTR_COL, &dom,
                                -1);
-            if (dom->vbox && dom->page == page) {
-                return dom;
+            if (dom->vbox) {
+                dpage = gtk_notebook_page_num(GTK_NOTEBOOK(win->notebook), dom->vbox);
+                if (dpage == cpage)
+                    return dom;
             }
             rc = gtk_tree_model_iter_next(model, &guest);
         }

@@ -70,7 +70,6 @@ struct vconsole_domain {
     char                      uuid[VIR_UUID_STRING_BUFLEN];
 
     GtkWidget                 *vbox, *vte, *status;
-    int                       page;
     virStreamPtr              stream;
     virDomainInfo             info;
 };
