@@ -121,15 +121,13 @@ static void domain_user_input(VteTerminal *vte, gchar *buf, guint len,
                               gpointer opaque)
 {
     struct vconsole_domain *dom = opaque;
-    virDomainPtr d;
 
     if (dom->stream) {
         virStreamSend(dom->stream, buf, len);
         return;
     }
     if (dom->info.state == VIR_DOMAIN_SHUTOFF) {
-        d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
-        virDomainCreate(d);
+        domain_start(dom);
     }
 }
 
@@ -162,6 +160,12 @@ static void domain_connect(struct vconsole_domain *dom, virDomainPtr d)
 }
 
 /* ------------------------------------------------------------------ */
+
+void domain_start(struct vconsole_domain *dom)
+{
+    virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
+    virDomainCreate(d);
+}
 
 void domain_update(struct vconsole_connect *conn,
                    virDomainPtr d, virDomainEventType event)
@@ -300,7 +304,7 @@ static void domain_close_tab(struct vconsole_domain *dom)
     dom->status = NULL;
 }
 
-static struct vconsole_domain *domain_find_current_tab(struct vconsole_window *win)
+struct vconsole_domain *domain_find_current_tab(struct vconsole_window *win)
 {
     GtkTreeModel *model = GTK_TREE_MODEL(win->store);
     GtkTreeIter host, guest;

@@ -74,8 +74,10 @@ struct vconsole_domain {
     virDomainInfo             info;
 };
 
+void domain_start(struct vconsole_domain *dom);
 void domain_update(struct vconsole_connect *conn,
                    virDomainPtr d, virDomainEventType event);
 void domain_activate(struct vconsole_domain *dom);
 void domain_configure_all_vtes(struct vconsole_window *win);
+struct vconsole_domain *domain_find_current_tab(struct vconsole_window *win);
 void domain_close_current_tab(struct vconsole_window *win);

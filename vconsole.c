@@ -198,6 +198,28 @@ static void menu_cb_config_bg(GtkAction *action, void *data)
     domain_configure_all_vtes(win);
 }
 
+static struct vconsole_domain *find_guest(struct vconsole_window *win)
+{
+    struct vconsole_domain *dom;
+
+    if (gtk_notebook_get_current_page(GTK_NOTEBOOK(win->notebook)) == 0) {
+        fprintf(stderr, "%s: [ TODO ] figure list selected guest\n", __func__);
+        dom = NULL;
+    } else {
+        dom = domain_find_current_tab(win);
+    }
+    return dom;
+}
+
+static void menu_cb_vm_run(GtkAction *action, void *data)
+{
+    struct vconsole_window *win = data;
+    struct vconsole_domain *dom = find_guest(win);
+
+    if (dom)
+        domain_start(dom);
+}
+
 static void menu_cb_about(GtkAction *action, gpointer userdata)
 {
     static char *comments = "virtual machine console";
@@ -236,6 +258,9 @@ static const GtkActionEntry entries[] = {
     },{
 	.name        = "ViewMenu",
 	.label       = "_View",
+    },{
+	.name        = "GuestMenu",
+	.label       = "_Guest",
     },{
 	.name        = "HelpMenu",
 	.label       = "_Help",
@@ -280,6 +305,13 @@ static const GtkActionEntry entries[] = {
 	.callback    = G_CALLBACK(menu_cb_config_bg),
     },{
 
+        /* --- guest menu --- */
+	.name        = "GuestRun",
+	.stock_id    = GTK_STOCK_MEDIA_PLAY,
+	.label       = "Start",
+	.callback    = G_CALLBACK(menu_cb_vm_run),
+
+    },{
         /* --- help menu --- */
 	.name        = "About",
         .stock_id    = GTK_STOCK_ABOUT,
@@ -313,10 +345,16 @@ static char ui_xml[] =
 "      <menuitem action='TerminalBackground'/>\n"
 "      <menuitem action='TerminalBlink'/>\n"
 "    </menu>\n"
+"    <menu action='GuestMenu'>\n"
+"      <menuitem action='GuestRun'/>\n"
+"    </menu>\n"
 "    <menu action='HelpMenu'>\n"
 "      <menuitem action='About'/>\n"
 "    </menu>\n"
 "  </menubar>\n"
+"  <toolbar action='ToolBar'>"
+"    <toolitem action='GuestRun'/>\n"
+"  </toolbar>\n"
 "</ui>\n";
 
 static char recent_xml[] =
