@@ -1,0 +1,45 @@
+
+What is vconsole
+================
+
+This is a virtual machine console, with a strong focus on guests using
+a serial console.  Features a tabbed GUI, one tab for the VM list,
+then one per guest console.  It build on top of libvirt.
+
+
+Using vconsole
+==============
+
+Just start it.  It comes up with a GUI which should be mostly
+self-explanatory.  If you have VIRSH_DEFAULT_CONNECT_URI set it should
+pick it up automatically.  If it comes up empty try passing the
+libvirt uri using the '-c' switch.
+
+Hit 'Enter' on a host line to expland/collapse the guest list.
+Hit 'Enter' on a guest line to open a guest (text) console tab for it.
+
+Guest console tabs stay open until you explicitly close them using the
+'close tab' file menu entry.  When a guest starts the console will be
+(re-)connected automatically.
+
+Typing into a guest console for a guest not running will start it
+(this is probably temporary until we have more fancy gui controls for
+that).
+
+
+Known issues / TODO list
+========================
+
+Dialog asking for a libvirt uri isn't implemented yet, so you have to
+use the -c command line switch.  vconsole will remember successful
+connects though and offer the hosts in a menu, so you have to do that
+only once per host.
+
+vconsole doesn't handle undefining domains yet.
+
+vconsole doesn't handle connection drops (caused by libvirtd restart
+for example) yet.
+
+vconsole lacks a .desktop file and manual page.
+
+Most likely there are bugs not listed here.
