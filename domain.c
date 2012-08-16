@@ -141,9 +141,7 @@ static void domain_user_input(VteTerminal *vte, gchar *buf, guint len,
         virStreamSend(dom->stream, buf, len);
         return;
     }
-    if (dom->info.state == VIR_DOMAIN_SHUTOFF) {
-        domain_start(dom);
-    }
+    domain_start(dom);
 }
 
 static void domain_connect(struct vconsole_domain *dom, virDomainPtr d)
@@ -179,7 +177,11 @@ static void domain_connect(struct vconsole_domain *dom, virDomainPtr d)
 void domain_start(struct vconsole_domain *dom)
 {
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
-    virDomainCreate(d);
+
+    virDomainGetInfo(d, &dom->info);
+    if (dom->info.state == VIR_DOMAIN_SHUTOFF) {
+        virDomainCreate(d);
+    }
 }
 
 void domain_update(struct vconsole_connect *conn,
