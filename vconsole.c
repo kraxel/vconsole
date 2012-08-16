@@ -198,6 +198,19 @@ static void menu_cb_config_bg(GtkAction *action, void *data)
     domain_configure_all_vtes(win);
 }
 
+static void menu_cb_fullscreen(GtkToggleAction *action, gpointer userdata)
+{
+    struct vconsole_window *win = userdata;
+    gboolean active;
+
+    active = gtk_toggle_action_get_active(action);
+    if (active) {
+        gtk_window_fullscreen(GTK_WINDOW(win->toplevel));
+    } else {
+        gtk_window_unfullscreen(GTK_WINDOW(win->toplevel));
+    }
+}
+
 static struct vconsole_domain *find_guest(struct vconsole_window *win)
 {
     struct vconsole_domain *dom;
@@ -327,6 +340,12 @@ static const GtkToggleActionEntry tentries[] = {
 	.name        = "TerminalBlink",
 	.label       = "Blinking cursor",
 	.callback    = G_CALLBACK(menu_cb_blink_cursor),
+    },{
+	.name        = "FullScreen",
+        .stock_id    = GTK_STOCK_FULLSCREEN,
+	.label       = "_Fullscreen",
+	.accelerator = "F11",
+	.callback    = G_CALLBACK(menu_cb_fullscreen),
     }
 };
 
@@ -346,6 +365,8 @@ static char ui_xml[] =
 "      <menuitem action='TerminalForeground'/>\n"
 "      <menuitem action='TerminalBackground'/>\n"
 "      <menuitem action='TerminalBlink'/>\n"
+"      <separator/>\n"
+"      <menuitem action='FullScreen'/>\n"
 "    </menu>\n"
 "    <menu action='GuestMenu'>\n"
 "      <menuitem action='GuestRun'/>\n"
@@ -372,7 +393,31 @@ static char recent_xml[] =
 "  </menubar>\n"
 "</ui>\n";
 
-static void destroy(GtkWidget *widget, gpointer   data)
+/* ------------------------------------------------------------------ */
+
+static gboolean window_state_cb(GtkWidget *widget, GdkEventWindowState *event,
+				gpointer userdata)
+{
+    struct vconsole_window *win = userdata;
+    GtkWidget *fs, *tb;
+
+    if (!(event->changed_mask & GDK_WINDOW_STATE_FULLSCREEN))
+        return TRUE;
+    win->fullscreen = event->new_window_state & GDK_WINDOW_STATE_FULLSCREEN;
+
+    fs = gtk_ui_manager_get_widget(win->ui, "/MainMenu/ViewMenu/FullScreen");
+    tb = gtk_ui_manager_get_widget(win->ui, "/ToolBar");
+
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(fs), win->fullscreen);
+    if (win->fullscreen) {
+        gtk_widget_hide(tb);
+    } else {
+        gtk_widget_show(tb);
+    }
+    return TRUE;
+}
+
+static void destroy(GtkWidget *widget, gpointer data)
 {
     gtk_main_quit();
 }
@@ -442,6 +487,8 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     gtk_window_set_default_size(GTK_WINDOW(win->toplevel), 320, 280);
     g_signal_connect(G_OBJECT(win->toplevel), "destroy",
 		     G_CALLBACK(destroy), win);
+    g_signal_connect(G_OBJECT(win->toplevel), "window-state-event",
+		     G_CALLBACK(window_state_cb), win);
 
     /* menu + toolbar */
     win->ui = gtk_ui_manager_new();
