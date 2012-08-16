@@ -30,8 +30,6 @@ that).
 Known issues / TODO list
 ========================
 
-vconsole doesn't handle undefining domains yet.
-
 vconsole doesn't handle connection drops (caused by libvirtd restart
 for example) yet.
 

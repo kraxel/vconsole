@@ -87,6 +87,21 @@ static void domain_disconnect(struct vconsole_domain *dom, virDomainPtr d)
     domain_update_status(dom);
 }
 
+static void domain_close_tab(struct vconsole_domain *dom, virDomainPtr d)
+{
+    GtkNotebook *notebook = GTK_NOTEBOOK(dom->conn->win->notebook);
+    gint page;
+
+    domain_disconnect(dom, d);
+    if (!dom->vbox)
+        return;
+    page = gtk_notebook_page_num(notebook, dom->vbox);
+    gtk_notebook_remove_page(notebook, page);
+    dom->vbox = NULL;
+    dom->vte = NULL;
+    dom->status = NULL;
+}
+
 static void domain_console_event(virStreamPtr stream, int events, void *opaque)
 {
     struct vconsole_domain *dom = opaque;
@@ -218,9 +233,10 @@ void domain_update(struct vconsole_connect *conn,
     /* handle events */
     switch (event) {
     case VIR_DOMAIN_EVENT_UNDEFINED:
-        fprintf(stderr, "%s: undefined %s [ FIXME ]\n", __func__,
-                virDomainGetName(d));
-        break;
+        domain_close_tab(dom, d);
+        gtk_tree_store_remove(conn->win->store, &guest);
+        g_free(dom);
+        return;
     case VIR_DOMAIN_EVENT_STARTED:
         domain_connect(dom, d);
         break;
@@ -290,20 +306,6 @@ void domain_activate(struct vconsole_domain *dom)
     domain_connect(dom, d);
 }
 
-static void domain_close_tab(struct vconsole_domain *dom)
-{
-    virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
-    GtkNotebook *notebook = GTK_NOTEBOOK(dom->conn->win->notebook);
-    gint page;
-
-    domain_disconnect(dom, d);
-    page = gtk_notebook_page_num(notebook, dom->vbox);
-    gtk_notebook_remove_page(notebook, page);
-    dom->vbox = NULL;
-    dom->vte = NULL;
-    dom->status = NULL;
-}
-
 struct vconsole_domain *domain_find_current_tab(struct vconsole_window *win)
 {
     GtkTreeModel *model = GTK_TREE_MODEL(win->store);
@@ -334,9 +336,12 @@ struct vconsole_domain *domain_find_current_tab(struct vconsole_window *win)
 void domain_close_current_tab(struct vconsole_window *win)
 {
     struct vconsole_domain *dom;
+    virDomainPtr d;
 
     dom = domain_find_current_tab(win);
-    if (dom)
-        domain_close_tab(dom);
+    if (dom) {
+        d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
+        domain_close_tab(dom, d);
+    }
 }
 
