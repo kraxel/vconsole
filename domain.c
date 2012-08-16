@@ -179,8 +179,25 @@ void domain_start(struct vconsole_domain *dom)
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
 
     virDomainGetInfo(d, &dom->info);
-    if (dom->info.state == VIR_DOMAIN_SHUTOFF) {
+    switch (dom->info.state) {
+    case VIR_DOMAIN_SHUTOFF:
         virDomainCreate(d);
+        break;
+    case VIR_DOMAIN_PAUSED:
+        virDomainResume(d);
+        break;
+    }
+}
+
+void domain_pause(struct vconsole_domain *dom)
+{
+    virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
+
+    virDomainGetInfo(d, &dom->info);
+    switch (dom->info.state) {
+    case VIR_DOMAIN_RUNNING:
+        virDomainSuspend(d);
+        break;
     }
 }
 

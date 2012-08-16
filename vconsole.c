@@ -213,11 +213,16 @@ static void menu_cb_fullscreen(GtkToggleAction *action, gpointer userdata)
 
 static struct vconsole_domain *find_guest(struct vconsole_window *win)
 {
-    struct vconsole_domain *dom;
+    struct vconsole_domain *dom = NULL;
+    GtkTreeSelection *select;
+    GtkTreeIter iter;
+    GtkTreeModel *model;
 
     if (gtk_notebook_get_current_page(GTK_NOTEBOOK(win->notebook)) == 0) {
-        fprintf(stderr, "%s: [ TODO ] figure list selected guest\n", __func__);
-        dom = NULL;
+        select = gtk_tree_view_get_selection(GTK_TREE_VIEW(win->tree));
+        if (gtk_tree_selection_get_selected(select, &model, &iter)) {
+            gtk_tree_model_get(model, &iter, DPTR_COL, &dom, -1);
+        }
     } else {
         dom = domain_find_current_tab(win);
     }
@@ -231,6 +236,15 @@ static void menu_cb_vm_run(GtkAction *action, void *data)
 
     if (dom)
         domain_start(dom);
+}
+
+static void menu_cb_vm_pause(GtkAction *action, void *data)
+{
+    struct vconsole_window *win = data;
+    struct vconsole_domain *dom = find_guest(win);
+
+    if (dom)
+        domain_pause(dom);
 }
 
 static void menu_cb_about(GtkAction *action, gpointer userdata)
@@ -325,6 +339,12 @@ static const GtkActionEntry entries[] = {
 	.label       = "Start",
         .tooltip     = "Start Guest",
 	.callback    = G_CALLBACK(menu_cb_vm_run),
+    },{
+	.name        = "GuestPause",
+	.stock_id    = GTK_STOCK_MEDIA_PAUSE,
+	.label       = "Pause",
+        .tooltip     = "Pause Guest",
+	.callback    = G_CALLBACK(menu_cb_vm_pause),
 
     },{
         /* --- help menu --- */
@@ -370,6 +390,7 @@ static char ui_xml[] =
 "    </menu>\n"
 "    <menu action='GuestMenu'>\n"
 "      <menuitem action='GuestRun'/>\n"
+"      <menuitem action='GuestPause'/>\n"
 "    </menu>\n"
 "    <menu action='HelpMenu'>\n"
 "      <menuitem action='About'/>\n"
@@ -379,6 +400,7 @@ static char ui_xml[] =
 "    <toolitem action='CloseTab'/>\n"
 "    <separator/>\n"
 "    <toolitem action='GuestRun'/>\n"
+"    <toolitem action='GuestPause'/>\n"
 "  </toolbar>\n"
 "</ui>\n";
 

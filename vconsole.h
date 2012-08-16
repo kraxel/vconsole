@@ -76,6 +76,8 @@ struct vconsole_domain {
 };
 
 void domain_start(struct vconsole_domain *dom);
+void domain_pause(struct vconsole_domain *dom);
+
 void domain_update(struct vconsole_connect *conn,
                    virDomainPtr d, virDomainEventType event);
 void domain_activate(struct vconsole_domain *dom);
