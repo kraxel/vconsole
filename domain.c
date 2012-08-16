@@ -186,6 +186,9 @@ void domain_start(struct vconsole_domain *dom)
     case VIR_DOMAIN_PAUSED:
         virDomainResume(d);
         break;
+    default:
+        fprintf(stderr, "%s: invalid guest state: %s\n",
+                __func__, domain_state_name(dom));
     }
 }
 
@@ -198,6 +201,54 @@ void domain_pause(struct vconsole_domain *dom)
     case VIR_DOMAIN_RUNNING:
         virDomainSuspend(d);
         break;
+    default:
+        fprintf(stderr, "%s: invalid guest state: %s\n",
+                __func__, domain_state_name(dom));
+    }
+}
+
+void domain_reboot(struct vconsole_domain *dom)
+{
+    virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
+
+    virDomainGetInfo(d, &dom->info);
+    switch (dom->info.state) {
+    case VIR_DOMAIN_RUNNING:
+        virDomainReboot(d, 0);
+        break;
+    default:
+        fprintf(stderr, "%s: invalid guest state: %s\n",
+                __func__, domain_state_name(dom));
+    }
+}
+
+void domain_shutdown(struct vconsole_domain *dom)
+{
+    virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
+
+    virDomainGetInfo(d, &dom->info);
+    switch (dom->info.state) {
+    case VIR_DOMAIN_RUNNING:
+        virDomainShutdown(d);
+        break;
+    default:
+        fprintf(stderr, "%s: invalid guest state: %s\n",
+                __func__, domain_state_name(dom));
+    }
+}
+
+void domain_kill(struct vconsole_domain *dom)
+{
+    virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
+
+    virDomainGetInfo(d, &dom->info);
+    switch (dom->info.state) {
+    case VIR_DOMAIN_RUNNING:
+        virDomainDestroy(d);
+        break;
+    default:
+        fprintf(stderr, "%s: invalid guest state: %s\n",
+                __func__, domain_state_name(dom));
     }
 }
 

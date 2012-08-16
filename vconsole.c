@@ -247,6 +247,33 @@ static void menu_cb_vm_pause(GtkAction *action, void *data)
         domain_pause(dom);
 }
 
+static void menu_cb_vm_reboot(GtkAction *action, void *data)
+{
+    struct vconsole_window *win = data;
+    struct vconsole_domain *dom = find_guest(win);
+
+    if (dom)
+        domain_reboot(dom);
+}
+
+static void menu_cb_vm_shutdown(GtkAction *action, void *data)
+{
+    struct vconsole_window *win = data;
+    struct vconsole_domain *dom = find_guest(win);
+
+    if (dom)
+        domain_shutdown(dom);
+}
+
+static void menu_cb_vm_kill(GtkAction *action, void *data)
+{
+    struct vconsole_window *win = data;
+    struct vconsole_domain *dom = find_guest(win);
+
+    if (dom)
+        domain_kill(dom);
+}
+
 static void menu_cb_about(GtkAction *action, gpointer userdata)
 {
     static char *comments = "virtual machine console";
@@ -336,8 +363,8 @@ static const GtkActionEntry entries[] = {
         /* --- guest menu --- */
 	.name        = "GuestRun",
 	.stock_id    = GTK_STOCK_MEDIA_PLAY,
-	.label       = "Start",
-        .tooltip     = "Start Guest",
+	.label       = "Run",
+        .tooltip     = "Run Guest",
 	.callback    = G_CALLBACK(menu_cb_vm_run),
     },{
 	.name        = "GuestPause",
@@ -345,6 +372,21 @@ static const GtkActionEntry entries[] = {
 	.label       = "Pause",
         .tooltip     = "Pause Guest",
 	.callback    = G_CALLBACK(menu_cb_vm_pause),
+    },{
+	.name        = "GuestReboot",
+	.label       = "Reboot",
+        .tooltip     = "Reboot Guest",
+	.callback    = G_CALLBACK(menu_cb_vm_reboot),
+    },{
+	.name        = "GuestShutdown",
+	.label       = "Shutdown",
+        .tooltip     = "Shutdown Guest",
+	.callback    = G_CALLBACK(menu_cb_vm_shutdown),
+    },{
+	.name        = "GuestKill",
+	.label       = "Destroy",
+        .tooltip     = "Destroy Guest",
+	.callback    = G_CALLBACK(menu_cb_vm_kill),
 
     },{
         /* --- help menu --- */
@@ -391,6 +433,10 @@ static char ui_xml[] =
 "    <menu action='GuestMenu'>\n"
 "      <menuitem action='GuestRun'/>\n"
 "      <menuitem action='GuestPause'/>\n"
+"      <menuitem action='GuestReboot'/>\n"
+"      <menuitem action='GuestShutdown'/>\n"
+"      <separator/>\n"
+"      <menuitem action='GuestKill'/>\n"
 "    </menu>\n"
 "    <menu action='HelpMenu'>\n"
 "      <menuitem action='About'/>\n"
