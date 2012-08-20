@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <assert.h>
 
+#include <sys/stat.h>
+
 #include <gtk/gtk.h>
 #include <vte/vte.h>
 
@@ -74,6 +76,9 @@ struct vconsole_domain {
     GtkWidget                 *vbox, *vte, *status;
     virStreamPtr              stream;
     virDomainInfo             info;
+
+    FILE                      *logfp;
+    char                      *logname;
 };
 
 void domain_start(struct vconsole_domain *dom);

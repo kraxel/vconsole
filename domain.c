@@ -68,9 +68,85 @@ static void domain_configure_vte(struct vconsole_domain *dom)
     vte_terminal_set_color_background(vte, &bg);
 }
 
+static void make_dirs(const char *filename)
+{
+    char *dirname = g_strdup(filename);
+    char *slash = strrchr(dirname, '/');
+
+    if (!slash)
+        return;
+    if (slash == dirname)
+        return;
+    *slash = 0;
+    if (mkdir(dirname, 0777) < 0) {
+        if (errno != ENOENT)
+            goto err;
+        make_dirs(dirname);
+        if (mkdir(dirname, 0777) < 0)
+            goto err;
+    }
+    return;
+
+err:
+    fprintf(stderr, "mkdir %s: %s\n", dirname, strerror(errno));
+    g_free(dirname);
+    return;
+}
+
+static void domain_log_open(struct vconsole_domain *dom)
+{
+    virDomainPtr d;
+
+    if (!dom->conn->win->vm_logging)
+        return;
+    if (!dom->stream)
+        return;
+    if (dom->logfp)
+        return;
+
+    d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
+    dom->logname = g_strdup_printf("%s/vconsole/%s/%s.log",
+                                   getenv("HOME"),
+                                   virConnectGetHostname(dom->conn->ptr),
+                                   virDomainGetName(d));
+    dom->logfp = fopen(dom->logname, "a");
+    if (dom->logfp == NULL) {
+        if (errno != ENOENT)
+            goto err;
+        make_dirs(dom->logname);
+        dom->logfp = fopen(dom->logname, "a");
+        if (dom->logfp == NULL)
+            goto err;
+    }
+    setbuf(dom->logfp, NULL);  /* unbuffered please */
+    fprintf(dom->logfp, "*** vconsole: log opened ***\n");
+    return;
+
+err:
+    fprintf(stderr, "open %s: %s\n", dom->logname, strerror(errno));
+    g_free(dom->logname);
+    dom->logname = NULL;
+}
+
+static void domain_log_close(struct vconsole_domain *dom)
+{
+    if (!dom->logfp)
+        return;
+    fprintf(dom->logfp, "\n*** vconsole: closing log ***\n");
+    fclose(dom->logfp);
+    dom->logfp = NULL;
+    g_free(dom->logname);
+    dom->logname = NULL;
+}
+
 static void domain_configure_logging(struct vconsole_domain *dom)
 {
-    /* TODO */
+    gboolean logging = dom->conn->win->vm_logging;
+
+    if (!logging)
+        domain_log_close(dom);
+    else
+        domain_log_open(dom);
 }
 
 void domain_configure_all_vtes(struct vconsole_window *win)
@@ -105,6 +181,7 @@ static void domain_disconnect(struct vconsole_domain *dom, virDomainPtr d)
     virStreamEventRemoveCallback(dom->stream);
     virStreamFree(dom->stream);
     dom->stream = NULL;
+    domain_log_close(dom);
     domain_update_status(dom);
 }
 
@@ -139,6 +216,8 @@ static void domain_console_event(virStreamPtr stream, int events, void *opaque)
             bytes += rc;
             if (dom->vte)
                 vte_terminal_feed(VTE_TERMINAL(dom->vte), buf, rc);
+            if (dom->logfp)
+                fwrite(buf, rc, 1, dom->logfp);
         }
         if (bytes == 0) {
             if (debug)
@@ -190,6 +269,7 @@ static void domain_connect(struct vconsole_domain *dom, virDomainPtr d)
                               domain_console_event, dom, NULL);
     if (debug)
         fprintf(stderr, "%s: %s ok\n", __func__, virDomainGetName(d));
+    domain_log_open(dom);
     domain_update_status(dom);
 }
 
@@ -391,7 +471,6 @@ void domain_activate(struct vconsole_domain *dom)
         gtk_widget_show_all(dom->vbox);
         gtk_notebook_set_current_page(GTK_NOTEBOOK(win->notebook), page);
         domain_configure_vte(dom);
-        domain_configure_logging(dom);
         domain_update_status(dom);
     }
 
