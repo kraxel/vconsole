@@ -22,25 +22,8 @@ static const char *domain_state_name(struct vconsole_domain *dom)
 
 /* ------------------------------------------------------------------ */
 
-static void domain_configure_vte(struct vconsole_domain *dom)
-{
-    struct vconsole_window *win = dom->conn->win;
-    VteTerminal *vte = VTE_TERMINAL(dom->vte);
-    VteTerminalCursorBlinkMode bl =
-        win->tty_blink ? VTE_CURSOR_BLINK_ON : VTE_CURSOR_BLINK_OFF;
-    GdkColor fg = {0,0,0,0};
-    GdkColor bg = {0,0,0,0};
-
-    gdk_color_parse(win->tty_fg, &fg);
-    gdk_color_parse(win->tty_bg, &bg);
-
-    vte_terminal_set_font_from_string(vte, win->tty_font);
-    vte_terminal_set_cursor_blink_mode(vte, bl);
-    vte_terminal_set_color_foreground(vte, &fg);
-    vte_terminal_set_color_background(vte, &bg);
-}
-
-void domain_configure_all_vtes(struct vconsole_window *win)
+static void domain_foreach(struct vconsole_window *win,
+                           void (*func)(struct vconsole_domain *dom))
 {
     GtkTreeModel *model = GTK_TREE_MODEL(win->store);
     GtkTreeIter host, guest;
@@ -54,12 +37,37 @@ void domain_configure_all_vtes(struct vconsole_window *win)
             gtk_tree_model_get(model, &guest,
                                DPTR_COL, &dom,
                                -1);
-            if (dom->vte)
-                domain_configure_vte(dom);
+            func(dom);
             rc = gtk_tree_model_iter_next(model, &guest);
         }
         rc = gtk_tree_model_iter_next(model, &host);
     }
+}
+
+static void domain_configure_vte(struct vconsole_domain *dom)
+{
+    struct vconsole_window *win = dom->conn->win;
+    VteTerminal *vte = VTE_TERMINAL(dom->vte);
+    VteTerminalCursorBlinkMode bl =
+        win->tty_blink ? VTE_CURSOR_BLINK_ON : VTE_CURSOR_BLINK_OFF;
+    GdkColor fg = {0,0,0,0};
+    GdkColor bg = {0,0,0,0};
+
+    if (!dom->vte)
+        return;
+
+    gdk_color_parse(win->tty_fg, &fg);
+    gdk_color_parse(win->tty_bg, &bg);
+
+    vte_terminal_set_font_from_string(vte, win->tty_font);
+    vte_terminal_set_cursor_blink_mode(vte, bl);
+    vte_terminal_set_color_foreground(vte, &fg);
+    vte_terminal_set_color_background(vte, &bg);
+}
+
+void domain_configure_all_vtes(struct vconsole_window *win)
+{
+    domain_foreach(win, domain_configure_vte);
 }
 
 static void domain_update_status(struct vconsole_domain *dom)
