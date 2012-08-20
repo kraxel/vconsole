@@ -20,6 +20,20 @@ static const char *domain_state_name(struct vconsole_domain *dom)
     return "-?-";
 }
 
+static void domain_update_status(struct vconsole_domain *dom)
+{
+    char *line;
+
+    if (!dom->status)
+        return;
+    line = g_strdup_printf("%s%s%s%s", domain_state_name(dom),
+                           dom->stream  ? ", connected" : "",
+                           dom->logname ? ", log "      : "",
+                           dom->logname ? dom->logname  : "");
+    gtk_label_set_text(GTK_LABEL(dom->status), line);
+    g_free(line);
+}
+
 /* ------------------------------------------------------------------ */
 
 static void domain_foreach(struct vconsole_window *win,
@@ -147,6 +161,7 @@ static void domain_configure_logging(struct vconsole_domain *dom)
         domain_log_close(dom);
     else
         domain_log_open(dom);
+    domain_update_status(dom);
 }
 
 void domain_configure_all_vtes(struct vconsole_window *win)
@@ -157,18 +172,6 @@ void domain_configure_all_vtes(struct vconsole_window *win)
 void domain_configure_all_logging(struct vconsole_window *win)
 {
     domain_foreach(win, domain_configure_logging);
-}
-
-static void domain_update_status(struct vconsole_domain *dom)
-{
-    char line[128];
-
-    if (!dom->status)
-        return;
-    snprintf(line, sizeof(line), "%s%s",
-             domain_state_name(dom),
-             dom->stream ? ", connected" : "");
-    gtk_label_set_text(GTK_LABEL(dom->status), line);
 }
 
 static void domain_disconnect(struct vconsole_domain *dom, virDomainPtr d)
