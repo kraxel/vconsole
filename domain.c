@@ -30,6 +30,9 @@ static void domain_foreach(struct vconsole_window *win,
     struct vconsole_domain *dom;
     int rc;
 
+    if (model == NULL)
+        return;
+
     rc = gtk_tree_model_get_iter_first(model, &host);
     while (rc) {
         rc = gtk_tree_model_iter_nth_child(model, &guest, &host, 0);
@@ -65,9 +68,19 @@ static void domain_configure_vte(struct vconsole_domain *dom)
     vte_terminal_set_color_background(vte, &bg);
 }
 
+static void domain_configure_logging(struct vconsole_domain *dom)
+{
+    /* TODO */
+}
+
 void domain_configure_all_vtes(struct vconsole_window *win)
 {
     domain_foreach(win, domain_configure_vte);
+}
+
+void domain_configure_all_logging(struct vconsole_window *win)
+{
+    domain_foreach(win, domain_configure_logging);
 }
 
 static void domain_update_status(struct vconsole_domain *dom)
@@ -378,6 +391,7 @@ void domain_activate(struct vconsole_domain *dom)
         gtk_widget_show_all(dom->vbox);
         gtk_notebook_set_current_page(GTK_NOTEBOOK(win->notebook), page);
         domain_configure_vte(dom);
+        domain_configure_logging(dom);
         domain_update_status(dom);
     }
 

@@ -302,6 +302,16 @@ static void menu_cb_blink_cursor(GtkToggleAction *action, gpointer userdata)
     config_write();
 }
 
+static void menu_cb_vm_logging(GtkToggleAction *action, gpointer userdata)
+{
+    struct vconsole_window *win = userdata;
+
+    win->vm_logging = gtk_toggle_action_get_active(action);
+    domain_configure_all_logging(win);
+    g_key_file_set_boolean(config, "vm", "logging", win->vm_logging);
+    config_write();
+}
+
 /* ------------------------------------------------------------------ */
 
 static const GtkActionEntry entries[] = {
@@ -408,6 +418,10 @@ static const GtkToggleActionEntry tentries[] = {
 	.label       = "_Fullscreen",
 	.accelerator = "F11",
 	.callback    = G_CALLBACK(menu_cb_fullscreen),
+    },{
+	.name        = "GuestLogging",
+	.label       = "Log to file",
+	.callback    = G_CALLBACK(menu_cb_vm_logging),
     }
 };
 
@@ -431,6 +445,8 @@ static char ui_xml[] =
 "      <menuitem action='FullScreen'/>\n"
 "    </menu>\n"
 "    <menu action='GuestMenu'>\n"
+"      <menuitem action='GuestLogging'/>\n"
+"      <separator/>\n"
 "      <menuitem action='GuestRun'/>\n"
 "      <menuitem action='GuestPause'/>\n"
 "      <menuitem action='GuestReboot'/>\n"
@@ -598,6 +614,8 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     win->tty_bg = g_key_file_get_string(config, "tty", "background", &err);
     err = NULL;
     win->tty_blink = g_key_file_get_boolean(config, "tty", "blink", &err);
+    err = NULL;
+    win->vm_logging = g_key_file_get_boolean(config, "vm", "logging", &err);
 
     /* config defaults */
     if (!win->tty_font)
@@ -610,6 +628,8 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     /* apply config */
     item = gtk_ui_manager_get_widget(win->ui, "/MainMenu/ViewMenu/TerminalBlink");
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), win->tty_blink);
+    item = gtk_ui_manager_get_widget(win->ui, "/MainMenu/GuestMenu/GuestLogging");
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), win->vm_logging);
 
     return win;
 }

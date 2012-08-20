@@ -48,6 +48,7 @@ struct vconsole_window {
     char                      *tty_font;
     char                      *tty_fg;
     char                      *tty_bg;
+    gboolean                  vm_logging;
 };
 
 extern int debug;
@@ -85,5 +86,6 @@ void domain_update(struct vconsole_connect *conn,
                    virDomainPtr d, virDomainEventType event);
 void domain_activate(struct vconsole_domain *dom);
 void domain_configure_all_vtes(struct vconsole_window *win);
+void domain_configure_all_logging(struct vconsole_window *win);
 struct vconsole_domain *domain_find_current_tab(struct vconsole_window *win);
 void domain_close_current_tab(struct vconsole_window *win);
