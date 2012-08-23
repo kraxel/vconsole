@@ -87,6 +87,7 @@ void domain_reboot(struct vconsole_domain *dom);
 void domain_shutdown(struct vconsole_domain *dom);
 void domain_kill(struct vconsole_domain *dom);
 
+void domain_free(struct vconsole_domain *dom);
 void domain_update(struct vconsole_connect *conn,
                    virDomainPtr d, virDomainEventType event);
 void domain_activate(struct vconsole_domain *dom);

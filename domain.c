@@ -358,6 +358,14 @@ void domain_kill(struct vconsole_domain *dom)
     }
 }
 
+void domain_free(struct vconsole_domain *dom)
+{
+    virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
+
+    domain_close_tab(dom, d);
+    g_free(dom);
+}
+
 void domain_update(struct vconsole_connect *conn,
                    virDomainPtr d, virDomainEventType event)
 {
@@ -409,9 +417,8 @@ void domain_update(struct vconsole_connect *conn,
     /* handle events */
     switch (event) {
     case VIR_DOMAIN_EVENT_UNDEFINED:
-        domain_close_tab(dom, d);
         gtk_tree_store_remove(conn->win->store, &guest);
-        g_free(dom);
+        domain_free(dom);
         return;
     case VIR_DOMAIN_EVENT_STARTED:
         domain_connect(dom, d);

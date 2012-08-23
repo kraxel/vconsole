@@ -14,6 +14,44 @@ static int connect_domain_event(virConnectPtr c, virDomainPtr d,
     return 0;
 }
 
+static void connect_close(virConnectPtr c, int reason, void *opaque)
+{
+    struct vconsole_connect *conn = opaque;
+    GtkTreeModel *model = GTK_TREE_MODEL(conn->win->store);
+    struct vconsole_domain *dom = NULL;
+    GtkTreeIter host, guest;
+    gboolean rc;
+    void *ptr;
+
+    if (debug)
+        fprintf(stderr, "%s: reason %d\n", __func__, reason);
+
+    /* find host */
+    rc = gtk_tree_model_get_iter_first(model, &host);
+    while (rc) {
+        gtk_tree_model_get(model, &host,
+                           CPTR_COL, &ptr,
+                           -1);
+        if (ptr == conn)
+            break;
+        rc = gtk_tree_model_iter_next(model, &host);
+    }
+    assert(ptr == conn);
+
+    /* free all guests */
+    while ((rc = gtk_tree_model_iter_nth_child(model, &guest, &host, 0))) {
+        gtk_tree_model_get(model, &guest,
+                           DPTR_COL, &dom,
+                           -1);
+        gtk_tree_store_remove(conn->win->store, &guest);
+        domain_free(dom);
+    }
+
+    /* free host */
+    gtk_tree_store_remove(conn->win->store, &host);
+    g_free(conn);
+}
+
 static void connect_list(struct vconsole_connect *conn)
 {
     int i, n;
@@ -56,6 +94,8 @@ struct vconsole_connect *connect_init(struct vconsole_window *win,
     conn->win = win;
     virConnectDomainEventRegister(conn->ptr, connect_domain_event,
                                   conn, NULL);
+    virConnectRegisterCloseCallback(conn->ptr, connect_close,
+                                    conn, NULL);
 
     gtk_tree_store_append(win->store, &iter, NULL);
     gtk_tree_store_set(win->store, &iter,
