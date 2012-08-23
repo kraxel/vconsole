@@ -247,10 +247,10 @@ _event_handle_remove(gpointer data)
 {
     struct gvir_event_handle *h = data;
 
-    g_mutex_lock(eventlock);
-
     if (h->ff)
         (h->ff)(h->opaque);
+
+    g_mutex_lock(eventlock);
 
     g_ptr_array_remove_fast(handles, h);
 
@@ -396,10 +396,10 @@ _event_timeout_remove(gpointer data)
 {
     struct gvir_event_timeout *t = data;
 
-    g_mutex_lock(eventlock);
-
     if (t->ff)
         (t->ff)(t->opaque);
+
+    g_mutex_lock(eventlock);
 
     g_ptr_array_remove_fast(timeouts, t);
 
