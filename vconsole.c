@@ -568,7 +568,7 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     win = g_new0(struct vconsole_window, 1);
     win->toplevel = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(win->toplevel), APPNAME);
-    gtk_window_set_default_size(GTK_WINDOW(win->toplevel), 320, 280);
+    gtk_window_set_default_size(GTK_WINDOW(win->toplevel), 640, 400);
     g_signal_connect(G_OBJECT(win->toplevel), "destroy",
 		     G_CALLBACK(destroy), win);
     g_signal_connect(G_OBJECT(win->toplevel), "window-state-event",

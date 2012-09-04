@@ -465,6 +465,7 @@ void domain_activate(struct vconsole_domain *dom)
         dom->vte = vte_terminal_new();
         g_signal_connect(dom->vte, "commit",
                          G_CALLBACK(domain_user_input), dom);
+        vte_terminal_set_scrollback_lines(VTE_TERMINAL(dom->vte), 9999);
 
         dom->status = gtk_label_new("-");
         gtk_misc_set_alignment(GTK_MISC(dom->status), 0, 0.5);
