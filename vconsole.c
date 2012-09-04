@@ -794,6 +794,8 @@ main(int argc, char *argv[])
     }
 
     if (uri == NULL)
+        uri = getenv("LIBVIRT_DEFAULT_URI");
+    if (uri == NULL)
         uri = getenv("VIRSH_DEFAULT_CONNECT_URI");
 
     /* init */
