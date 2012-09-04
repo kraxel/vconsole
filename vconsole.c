@@ -46,7 +46,7 @@ void config_write(void)
 static int gtk_getstring(GtkWidget *window, char *title, char *message,
                          char *dest, int dlen)
 {
-    GtkWidget *dialog, *label, *entry;
+    GtkWidget *dialog, *label, *entry, *vbox;
     const char *txt;
     int retval;
 
@@ -68,9 +68,10 @@ static int gtk_getstring(GtkWidget *window, char *title, char *message,
     gtk_entry_set_text(GTK_ENTRY(entry), dest);
     gtk_entry_set_activates_default(GTK_ENTRY(entry), TRUE);
 
-    gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), label);
-    gtk_container_add(GTK_CONTAINER(GTK_DIALOG(dialog)->vbox), entry);
-    gtk_box_set_spacing(GTK_BOX(GTK_DIALOG(dialog)->vbox), 10);
+    vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+    gtk_container_add(GTK_CONTAINER(vbox), label);
+    gtk_container_add(GTK_CONTAINER(vbox), entry);
+    gtk_box_set_spacing(GTK_BOX(vbox), 10);
 
     /* show and wait for response */
     gtk_widget_show_all(dialog);
@@ -158,7 +159,8 @@ static int pickcolor(char *title, char *group, char *key, char *current)
 
     gdk_color_parse(current, &color);
     dialog = gtk_color_selection_dialog_new(title);
-    csel = GTK_COLOR_SELECTION(GTK_COLOR_SELECTION_DIALOG(dialog)->colorsel);
+    csel = GTK_COLOR_SELECTION(gtk_color_selection_dialog_get_color_selection
+                               (GTK_COLOR_SELECTION_DIALOG(dialog)));
     gtk_color_selection_set_has_opacity_control(csel, FALSE);
     gtk_color_selection_set_current_color(csel, &color);
 

@@ -20,12 +20,21 @@ define make-config
 LIB		:= $(LIB)
 HAVE_GLIB	:= $(call ac_pkg_config,glib-2.0)
 HAVE_GTHREAD	:= $(call ac_pkg_config,gthread-2.0)
-HAVE_GTK	:= $(call ac_pkg_config,gtk+-2.0)
-HAVE_VTE	:= $(call ac_pkg_config,vte)
+HAVE_GTK2	:= $(call ac_pkg_config,gtk+-2.0)
+HAVE_VTE2	:= $(call ac_pkg_config,vte)
+HAVE_GTK3	:= $(call ac_pkg_config,gtk+-3.0)
+HAVE_VTE3	:= $(call ac_pkg_config,vte-2.90)
 HAVE_LIBVIRT	:= $(call ac_pkg_config,libvirt)
 endef
 
+ifeq ($(HAVE_GTK3)-$(HAVE_VTE3),yes-yes)
+CFLAGS += -Wno-deprecated-declarations
+wanted := $(HAVE_GLIB)-$(HAVE_GTHREAD)-$(HAVE_GTK3)-$(HAVE_VTE3)-$(HAVE_LIBVIRT)
+pkglst := glib-2.0 gthread-2.0 gtk+-3.0 vte-2.90 libvirt
+else
+wanted := $(HAVE_GLIB)-$(HAVE_GTHREAD)-$(HAVE_GTK2)-$(HAVE_VTE2)-$(HAVE_LIBVIRT)
 pkglst := glib-2.0 gthread-2.0 gtk+-2.0 vte libvirt
+endif
 
 CFLAGS += -Wno-strict-prototypes
 CFLAGS += $(shell test "$(pkglst)" != "" && pkg-config --cflags $(pkglst))
@@ -38,7 +47,7 @@ DESKTOP := $(wildcard $(patsubst %,%.desktop,$(TARGETS)))
 ########################################################################
 # rules
 
-ifeq ($(HAVE_GLIB)-$(HAVE_GTHREAD)-$(HAVE_GTK)-$(HAVE_VTE)-$(HAVE_LIBVIRT),yes-yes-yes-yes-yes)
+ifeq ($(wanted),yes-yes-yes-yes-yes)
 build: $(TARGETS)
 else
 build:
