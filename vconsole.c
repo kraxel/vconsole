@@ -290,6 +290,14 @@ static void menu_cb_about(GtkAction *action, gpointer userdata)
                           NULL);
 }
 
+static void menu_cb_manual(GtkAction *action, gpointer userdata)
+{
+    if (fork() <= 0)
+        return;
+    /* child */
+    execlp("xdg-open", "xdg-open", "man:vconsole(1)", NULL);
+}
+
 /* ------------------------------------------------------------------ */
 
 static void menu_cb_blink_cursor(GtkToggleAction *action, gpointer userdata)
@@ -404,6 +412,10 @@ static const GtkActionEntry entries[] = {
         .stock_id    = GTK_STOCK_ABOUT,
 	.label       = "_About ...",
 	.callback    = G_CALLBACK(menu_cb_about),
+    },{
+	.name        = "Manual",
+	.label       = "_Manual page",
+	.callback    = G_CALLBACK(menu_cb_manual),
     },
 };
 
@@ -455,6 +467,7 @@ static char ui_xml[] =
 "      <menuitem action='GuestKill'/>\n"
 "    </menu>\n"
 "    <menu action='HelpMenu'>\n"
+"      <menuitem action='Manual'/>\n"
 "      <menuitem action='About'/>\n"
 "    </menu>\n"
 "  </menubar>\n"
