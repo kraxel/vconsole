@@ -47,7 +47,7 @@ build:
 endif
 
 install: build
-	$(INSTALL_DIR) $(DESTDIR)/etc $(bindir) $(mandir)/man1
+	$(INSTALL_DIR) $(bindir) $(mandir)/man1 $(appdir)
 	$(INSTALL_BINARY) $(TARGETS) $(bindir)
 	$(INSTALL_DATA) vconsole.man $(mandir)/man1/vconsole.1
 	$(INSTALL_DATA) $(DESKTOP) $(appdir)
