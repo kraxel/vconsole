@@ -1,0 +1,39 @@
+.TH vconsole 1 "(c) Gerd Hoffmann"
+.SH NAME
+vconsole - virtual machine console
+.SH SYNOPSIS
+.B vconsole [ options ]
+.SH DESCRIPTION
+.B vconsole
+is a virtual machine console, with a strong focus on guests using
+a serial console.  Features a tabbed GUI, one tab for the VM list,
+then one per guest console.
+.SH OPTIONS
+.TP
+.B -c <uri>
+Specify libvirt URI to use.
+.TP
+.B -h
+Display help text.
+.TP
+.B -d
+Enable debug logging on stderr.
+.SH GETTING STARTED
+Just start vconsole.  It comes up with a GUI which should be mostly
+self-explanatory.  If you have LIBVIRT_DEFAULT_URI or
+VIRSH_DEFAULT_CONNECT_URI set it should pick it up automatically.  If
+it comes up empty try passing the libvirt uri using the '-c' switch or
+use the "File / Connect ..." menu entry to connect.
+.P
+Hit 'Enter' on a host line to expland/collapse the guest list.
+Hit 'Enter' on a guest line to open a guest (text) console tab for it.
+.P
+Guest console tabs stay open until you explicitly close them using the
+'close tab' file menu entry.  When a guest starts the console will be
+(re-)connected automatically.
+.P
+Typing into a guest console for a guest not running will start it
+(this is probably temporary until we have more fancy gui controls for
+that).
+.SH AUTHOR
+Gerd Hoffmann <kraxel@redhat.com>
