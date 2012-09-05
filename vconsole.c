@@ -231,6 +231,28 @@ static struct vconsole_domain *find_guest(struct vconsole_window *win)
     return dom;
 }
 
+static void menu_cb_vm_gfx(GtkAction *action, void *data)
+{
+    struct vconsole_window *win = data;
+    struct vconsole_domain *dom = find_guest(win);
+    char *uri;
+
+    if (!dom)
+        return;
+    uri = virConnectGetURI(dom->conn->ptr);
+
+    if (fork() <= 0) {
+        /* parent */
+        free(uri);
+        return;
+    } else {
+        /* child */
+        execlp("virt-viewer", "virt-viewer", "-w", "-c", uri, dom->uuid, NULL);
+        perror("execlp");
+        exit(1);
+    }
+}
+
 static void menu_cb_vm_run(GtkAction *action, void *data)
 {
     struct vconsole_window *win = data;
@@ -294,10 +316,15 @@ static void menu_cb_about(GtkAction *action, gpointer userdata)
 
 static void menu_cb_manual(GtkAction *action, gpointer userdata)
 {
-    if (fork() <= 0)
+    if (fork() <= 0) {
+        /* parent */
         return;
-    /* child */
-    execlp("xdg-open", "xdg-open", "man:vconsole(1)", NULL);
+    } else {
+        /* child */
+        execlp("xdg-open", "xdg-open", "man:vconsole(1)", NULL);
+        perror("execlp");
+        exit(1);
+    }
 }
 
 /* ------------------------------------------------------------------ */
@@ -381,6 +408,10 @@ static const GtkActionEntry entries[] = {
     },{
 
         /* --- guest menu --- */
+	.name        = "GuestGfx",
+	.label       = "Show graphic console",
+	.callback    = G_CALLBACK(menu_cb_vm_gfx),
+    },{
 	.name        = "GuestRun",
 	.stock_id    = GTK_STOCK_MEDIA_PLAY,
 	.label       = "Run",
@@ -460,6 +491,8 @@ static char ui_xml[] =
 "    </menu>\n"
 "    <menu action='GuestMenu'>\n"
 "      <menuitem action='GuestLogging'/>\n"
+"      <separator/>\n"
+"      <menuitem action='GuestGfx'/>\n"
 "      <separator/>\n"
 "      <menuitem action='GuestRun'/>\n"
 "      <menuitem action='GuestPause'/>\n"
