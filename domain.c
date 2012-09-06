@@ -278,13 +278,18 @@ static void domain_connect(struct vconsole_domain *dom, virDomainPtr d)
     domain_update_status(dom);
 }
 
+static void domain_update_info(struct vconsole_domain *dom, virDomainPtr d)
+{
+    virDomainGetInfo(d, &dom->info);
+}
+
 /* ------------------------------------------------------------------ */
 
 void domain_start(struct vconsole_domain *dom)
 {
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
 
-    virDomainGetInfo(d, &dom->info);
+    domain_update_info(dom, d);
     switch (dom->info.state) {
     case VIR_DOMAIN_SHUTOFF:
         virDomainCreate(d);
@@ -302,7 +307,7 @@ void domain_pause(struct vconsole_domain *dom)
 {
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
 
-    virDomainGetInfo(d, &dom->info);
+    domain_update_info(dom, d);
     switch (dom->info.state) {
     case VIR_DOMAIN_RUNNING:
         virDomainSuspend(d);
@@ -317,7 +322,7 @@ void domain_save(struct vconsole_domain *dom)
 {
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
 
-    virDomainGetInfo(d, &dom->info);
+    domain_update_info(dom, d);
     switch (dom->info.state) {
     case VIR_DOMAIN_RUNNING:
     case VIR_DOMAIN_PAUSED:
@@ -333,7 +338,7 @@ void domain_reboot(struct vconsole_domain *dom)
 {
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
 
-    virDomainGetInfo(d, &dom->info);
+    domain_update_info(dom, d);
     switch (dom->info.state) {
     case VIR_DOMAIN_RUNNING:
         virDomainReboot(d, 0);
@@ -348,7 +353,7 @@ void domain_shutdown(struct vconsole_domain *dom)
 {
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
 
-    virDomainGetInfo(d, &dom->info);
+    domain_update_info(dom, d);
     switch (dom->info.state) {
     case VIR_DOMAIN_RUNNING:
         virDomainShutdown(d);
@@ -363,7 +368,7 @@ void domain_kill(struct vconsole_domain *dom)
 {
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
 
-    virDomainGetInfo(d, &dom->info);
+    domain_update_info(dom, d);
     switch (dom->info.state) {
     case VIR_DOMAIN_RUNNING:
         virDomainDestroy(d);
@@ -453,7 +458,7 @@ void domain_update(struct vconsole_connect *conn,
         strcpy(idstr, "-");
     else
         snprintf(idstr, sizeof(idstr), "%d", id);
-    virDomainGetInfo(d, &dom->info);
+    domain_update_info(dom, d);
     gtk_tree_store_set(conn->win->store, &guest,
                        NAME_COL,  name,
                        ID_COL,    idstr,
