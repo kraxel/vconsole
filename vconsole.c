@@ -271,6 +271,15 @@ static void menu_cb_vm_pause(GtkAction *action, void *data)
         domain_pause(dom);
 }
 
+static void menu_cb_vm_save(GtkAction *action, void *data)
+{
+    struct vconsole_window *win = data;
+    struct vconsole_domain *dom = find_guest(win);
+
+    if (dom)
+        domain_save(dom);
+}
+
 static void menu_cb_vm_reboot(GtkAction *action, void *data)
 {
     struct vconsole_window *win = data;
@@ -415,28 +424,33 @@ static const GtkActionEntry entries[] = {
 	.name        = "GuestRun",
 	.stock_id    = GTK_STOCK_MEDIA_PLAY,
 	.label       = "Run",
-        .tooltip     = "Run Guest",
+        .tooltip     = "Run guest",
 	.callback    = G_CALLBACK(menu_cb_vm_run),
     },{
 	.name        = "GuestPause",
 	.stock_id    = GTK_STOCK_MEDIA_PAUSE,
 	.label       = "Pause",
-        .tooltip     = "Pause Guest",
+        .tooltip     = "Pause guest",
 	.callback    = G_CALLBACK(menu_cb_vm_pause),
+    },{
+	.name        = "GuestSave",
+	.label       = "Save to disk",
+        .tooltip     = "Save guest to disk",
+	.callback    = G_CALLBACK(menu_cb_vm_save),
     },{
 	.name        = "GuestReboot",
 	.label       = "Reboot",
-        .tooltip     = "Reboot Guest",
+        .tooltip     = "Reboot guest",
 	.callback    = G_CALLBACK(menu_cb_vm_reboot),
     },{
 	.name        = "GuestShutdown",
 	.label       = "Shutdown",
-        .tooltip     = "Shutdown Guest",
+        .tooltip     = "Shutdown guest",
 	.callback    = G_CALLBACK(menu_cb_vm_shutdown),
     },{
 	.name        = "GuestKill",
 	.label       = "Destroy",
-        .tooltip     = "Destroy Guest",
+        .tooltip     = "Destroy guest",
 	.callback    = G_CALLBACK(menu_cb_vm_kill),
 
     },{
@@ -496,6 +510,7 @@ static char ui_xml[] =
 "      <separator/>\n"
 "      <menuitem action='GuestRun'/>\n"
 "      <menuitem action='GuestPause'/>\n"
+"      <menuitem action='GuestSave'/>\n"
 "      <menuitem action='GuestReboot'/>\n"
 "      <menuitem action='GuestShutdown'/>\n"
 "      <separator/>\n"
