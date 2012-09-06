@@ -383,6 +383,7 @@ static const GtkActionEntry entries[] = {
 
         /* --- file menu --- */
 	.name        = "ConnectAsk",
+	.stock_id    = GTK_STOCK_CONNECT,
 	.label       = "_Connect ...",
 	.callback    = G_CALLBACK(menu_cb_connect_ask),
     },{
@@ -390,13 +391,11 @@ static const GtkActionEntry entries[] = {
 	.stock_id    = GTK_STOCK_CLOSE,
 	.label       = "Close _Tab",
         .tooltip     = "Close Tab",
-	.accelerator = "<control>T",
 	.callback    = G_CALLBACK(menu_cb_close_tab),
     },{
 	.name        = "CloseApp",
 	.stock_id    = GTK_STOCK_QUIT,
 	.label       = "_Quit",
-	.accelerator = "<control>Q",
 	.callback    = G_CALLBACK(menu_cb_close_app),
     },{
 
@@ -434,8 +433,10 @@ static const GtkActionEntry entries[] = {
 	.callback    = G_CALLBACK(menu_cb_vm_pause),
     },{
 	.name        = "GuestSave",
+        .stock_id    = GTK_STOCK_SAVE,
 	.label       = "Save to disk",
         .tooltip     = "Save guest to disk",
+	.accelerator = "", /* don't catch Ctrl-S */
 	.callback    = G_CALLBACK(menu_cb_vm_save),
     },{
 	.name        = "GuestReboot",
@@ -461,6 +462,7 @@ static const GtkActionEntry entries[] = {
 	.callback    = G_CALLBACK(menu_cb_about),
     },{
 	.name        = "Manual",
+        .stock_id    = GTK_STOCK_HELP,
 	.label       = "_Manual page",
 	.callback    = G_CALLBACK(menu_cb_manual),
     },
@@ -526,6 +528,7 @@ static char ui_xml[] =
 "    <separator/>\n"
 "    <toolitem action='GuestRun'/>\n"
 "    <toolitem action='GuestPause'/>\n"
+"    <toolitem action='GuestSave'/>\n"
 "  </toolbar>\n"
 "</ui>\n";
 
