@@ -76,6 +76,7 @@ struct vconsole_domain {
     GtkWidget                 *vbox, *vte, *status;
     virStreamPtr              stream;
     virDomainInfo             info;
+    gboolean                  saved;
 
     FILE                      *logfp;
     char                      *logname;

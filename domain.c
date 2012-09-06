@@ -28,7 +28,8 @@ static void domain_update_status(struct vconsole_domain *dom)
 
     if (!dom->status)
         return;
-    line = g_strdup_printf("%s%s%s%s", domain_state_name(dom),
+    line = g_strdup_printf("%s%s%s%s%s", domain_state_name(dom),
+                           dom->saved   ? ", saved"     : "",
                            dom->stream  ? ", connected" : "",
                            dom->logname ? ", log "      : "",
                            dom->logname ? dom->logname  : "");
@@ -281,6 +282,8 @@ static void domain_connect(struct vconsole_domain *dom, virDomainPtr d)
 static void domain_update_info(struct vconsole_domain *dom, virDomainPtr d)
 {
     virDomainGetInfo(d, &dom->info);
+    dom->saved = virDomainHasManagedSaveImage(d, 0);
+    domain_update_status(dom);
 }
 
 /* ------------------------------------------------------------------ */
@@ -464,7 +467,6 @@ void domain_update(struct vconsole_connect *conn,
                        ID_COL,    idstr,
                        STATE_COL, domain_state_name(dom),
                        -1);
-    domain_update_status(dom);
 }
 
 void domain_activate(struct vconsole_domain *dom)
