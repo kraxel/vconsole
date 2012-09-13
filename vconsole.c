@@ -761,12 +761,14 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
 
     /* store & view */
     win->store = gtk_tree_store_new(N_COLUMNS,
-                                    G_TYPE_STRING,  // NAME_COL
-                                    G_TYPE_POINTER, // CPTR_COL
-                                    G_TYPE_STRING,  // URI_COL
-                                    G_TYPE_POINTER, // DPTR_COL
-                                    G_TYPE_STRING,  // ID_COL
-                                    G_TYPE_STRING); // STATE_COL
+                                    G_TYPE_STRING,   // NAME_COL
+                                    G_TYPE_POINTER,  // CPTR_COL
+                                    G_TYPE_STRING,   // URI_COL
+                                    G_TYPE_POINTER,  // DPTR_COL
+                                    G_TYPE_STRING,   // ID_COL
+                                    G_TYPE_STRING,   // STATE_COL
+                                    G_TYPE_STRING,   // FOREGROUND_COL
+                                    G_TYPE_INT);     // WEIGHT_COL
     sortable = GTK_TREE_SORTABLE(win->store);
     win->tree = gtk_tree_view_new_with_model(GTK_TREE_MODEL(win->store));
 
@@ -779,6 +781,8 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
     column = gtk_tree_view_column_new_with_attributes("Name",
                                                       renderer,
                                                       "text", NAME_COL,
+                                                      "weight", WEIGHT_COL,
+                                                      "foreground", FOREGROUND_COL,
                                                       NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(win->tree), column);
     gtk_tree_sortable_set_sort_func(sortable, NAME_COL,

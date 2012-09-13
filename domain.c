@@ -398,7 +398,8 @@ void domain_update(struct vconsole_connect *conn,
     struct vconsole_domain *dom = NULL;
     void *ptr;
     gboolean rc;
-    const char *name;
+    const char *name, *foreground;
+    PangoWeight weight;
     char uuid[VIR_UUID_STRING_BUFLEN];
     char idstr[16];
     int id;
@@ -461,11 +462,25 @@ void domain_update(struct vconsole_connect *conn,
         strcpy(idstr, "-");
     else
         snprintf(idstr, sizeof(idstr), "%d", id);
+
     domain_update_info(dom, d);
+    switch (dom->info.state) {
+    case VIR_DOMAIN_RUNNING:
+        foreground = "darkgreen";
+        weight = PANGO_WEIGHT_BOLD;
+        break;
+    default:
+        foreground = "black";
+        weight = PANGO_WEIGHT_NORMAL;
+        break;
+    }
+
     gtk_tree_store_set(conn->win->store, &guest,
-                       NAME_COL,  name,
-                       ID_COL,    idstr,
-                       STATE_COL, domain_state_name(dom),
+                       NAME_COL,       name,
+                       ID_COL,         idstr,
+                       STATE_COL,      domain_state_name(dom),
+                       FOREGROUND_COL, foreground,
+                       WEIGHT_COL,     weight,
                        -1);
 }
 

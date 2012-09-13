@@ -27,6 +27,12 @@ enum vconsole_cols {
     DPTR_COL,  // vconsole_domain
     ID_COL,
     STATE_COL,
+
+    /* beautify */
+    FOREGROUND_COL,
+    WEIGHT_COL,
+
+    /* end of list */
     N_COLUMNS
 };
 

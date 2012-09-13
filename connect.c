@@ -105,9 +105,11 @@ struct vconsole_connect *connect_init(struct vconsole_window *win,
 
     gtk_tree_store_append(win->store, &iter, NULL);
     gtk_tree_store_set(win->store, &iter,
-                       CPTR_COL, conn,
-                       NAME_COL, name,
-                       URI_COL,  uri,
+                       CPTR_COL,       conn,
+                       NAME_COL,       name,
+                       URI_COL,        uri,
+                       FOREGROUND_COL, "black",
+                       WEIGHT_COL,     PANGO_WEIGHT_NORMAL,
                        -1);
 
     if (debug)
