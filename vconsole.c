@@ -767,6 +767,7 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
                                     G_TYPE_POINTER,  // DPTR_COL
                                     G_TYPE_STRING,   // ID_COL
                                     G_TYPE_STRING,   // STATE_COL
+                                    G_TYPE_STRING,   // LOAD_COL
                                     G_TYPE_STRING,   // FOREGROUND_COL
                                     G_TYPE_INT);     // WEIGHT_COL
     sortable = GTK_TREE_SORTABLE(win->store);
@@ -806,6 +807,14 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
                                                       NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(win->tree), column);
 
+    /* cpu load */
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes("CPU",
+                                                      renderer,
+                                                      "text", LOAD_COL,
+                                                      NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(win->tree), column);
+
     /* sort store */
     gtk_tree_sortable_set_sort_column_id(sortable, NAME_COL,
                                          GTK_SORT_ASCENDING);
@@ -816,6 +825,14 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
     gtk_container_add(GTK_CONTAINER(scroll), win->tree);
     gtk_notebook_insert_page(GTK_NOTEBOOK(win->notebook),
                              scroll, label, 0);
+}
+
+static gboolean vconsole_update(gpointer data)
+{
+    struct vconsole_window *win = data;
+
+    domain_update_all(win);
+    return TRUE;
 }
 
 /* ------------------------------------------------------------------ */
@@ -882,6 +899,8 @@ main(int argc, char *argv[])
     if (uri)
         connect_init(win, uri);
     vconsole_build_recent(win);
+
+    g_timeout_add(10 * 1000, vconsole_update, win);
 
     /* main loop */
     gtk_main();

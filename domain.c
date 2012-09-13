@@ -125,7 +125,7 @@ static void domain_log_open(struct vconsole_domain *dom)
     dom->logname = g_strdup_printf("%s/vconsole/%s/%s.log",
                                    getenv("HOME"),
                                    virConnectGetHostname(dom->conn->ptr),
-                                   virDomainGetName(d));
+                                   dom->name);
     dom->logfp = fopen(dom->logname, "a");
     if (dom->logfp == NULL) {
         if (errno != ENOENT)
@@ -183,7 +183,7 @@ static void domain_disconnect(struct vconsole_domain *dom, virDomainPtr d)
         return;
 
     if (debug)
-        fprintf(stderr, "%s: %s\n", __func__, virDomainGetName(d));
+        fprintf(stderr, "%s: %s\n", __func__, dom->name);
     virStreamEventRemoveCallback(dom->stream);
     virStreamFree(dom->stream);
     dom->stream = NULL;
@@ -210,7 +210,6 @@ static void domain_console_event(virStreamPtr stream, int events, void *opaque)
 {
     struct vconsole_domain *dom = opaque;
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
-    const char *name = virDomainGetName(d);
     char buf[128];
     int rc, bytes = 0;
 
@@ -227,13 +226,13 @@ static void domain_console_event(virStreamPtr stream, int events, void *opaque)
         }
         if (bytes == 0) {
             if (debug)
-                fprintf(stderr, "%s: %s eof\n", __func__, name);
+                fprintf(stderr, "%s: %s eof\n", __func__, dom->name);
             domain_disconnect(dom, d);
         }
     }
     if (events & VIR_STREAM_EVENT_HANGUP) {
         if (debug)
-            fprintf(stderr, "%s: %s hangup\n", __func__, name);
+            fprintf(stderr, "%s: %s hangup\n", __func__, dom->name);
         domain_disconnect(dom, d);
     }
 }
@@ -263,7 +262,7 @@ static void domain_connect(struct vconsole_domain *dom, virDomainPtr d)
                               VIR_DOMAIN_CONSOLE_FORCE);
     if (rc < 0) {
         if (debug)
-            fprintf(stderr, "%s: %s failed\n", __func__, virDomainGetName(d));
+            fprintf(stderr, "%s: %s failed\n", __func__, dom->name);
         virStreamFree(dom->stream);
         dom->stream = NULL;
         return;
@@ -274,16 +273,66 @@ static void domain_connect(struct vconsole_domain *dom, virDomainPtr d)
                               VIR_STREAM_EVENT_HANGUP,
                               domain_console_event, dom, NULL);
     if (debug)
-        fprintf(stderr, "%s: %s ok\n", __func__, virDomainGetName(d));
+        fprintf(stderr, "%s: %s ok\n", __func__, dom->name);
     domain_log_open(dom);
     domain_update_status(dom);
 }
 
 static void domain_update_info(struct vconsole_domain *dom, virDomainPtr d)
 {
+    int id;
+
+    dom->last_info = dom->info;
+    dom->last_ts   = dom->ts;
+
+    gettimeofday(&dom->ts, NULL);
+    dom->name = virDomainGetName(d);
+    id = virDomainGetID(d);
+    if (id < 0)
+        strcpy(dom->idstr, "-");
+    else
+        snprintf(dom->idstr, sizeof(dom->idstr), "%d", id);
     virDomainGetInfo(d, &dom->info);
     dom->saved = virDomainHasManagedSaveImage(d, 0);
+
+    if (dom->last_ts.tv_sec) {
+        uint64_t real, cpu;
+        real  = (dom->ts.tv_sec - dom->last_ts.tv_sec) * 1000000000;
+        real += (dom->ts.tv_usec - dom->last_ts.tv_usec) * 1000;
+        cpu   = dom->info.cpuTime - dom->last_info.cpuTime;
+        dom->load = cpu * 100 / real;
+    }
+
     domain_update_status(dom);
+}
+
+static void domain_update_tree_store(struct vconsole_domain *dom,
+                                     GtkTreeIter *guest)
+{
+    const char *foreground;
+    char load[16];
+    PangoWeight weight;
+
+    switch (dom->info.state) {
+    case VIR_DOMAIN_RUNNING:
+        foreground = "darkgreen";
+        weight = PANGO_WEIGHT_BOLD;
+        snprintf(load, sizeof(load), "%d%%", dom->load);
+        break;
+    default:
+        foreground = "black";
+        weight = PANGO_WEIGHT_NORMAL;
+        strcpy(load, "");
+        break;
+    }
+    gtk_tree_store_set(dom->conn->win->store, guest,
+                       NAME_COL,       dom->name,
+                       ID_COL,         dom->idstr,
+                       STATE_COL,      domain_state_name(dom),
+                       LOAD_COL,       load,
+                       FOREGROUND_COL, foreground,
+                       WEIGHT_COL,     weight,
+                       -1);
 }
 
 /* ------------------------------------------------------------------ */
@@ -398,11 +447,7 @@ void domain_update(struct vconsole_connect *conn,
     struct vconsole_domain *dom = NULL;
     void *ptr;
     gboolean rc;
-    const char *name, *foreground;
-    PangoWeight weight;
     char uuid[VIR_UUID_STRING_BUFLEN];
-    char idstr[16];
-    int id;
 
     /* find host */
     rc = gtk_tree_model_get_iter_first(model, &host);
@@ -456,32 +501,41 @@ void domain_update(struct vconsole_connect *conn,
     }
 
     /* update guest info */
-    name = virDomainGetName(d);
-    id = virDomainGetID(d);
-    if (id < 0)
-        strcpy(idstr, "-");
-    else
-        snprintf(idstr, sizeof(idstr), "%d", id);
-
     domain_update_info(dom, d);
-    switch (dom->info.state) {
-    case VIR_DOMAIN_RUNNING:
-        foreground = "darkgreen";
-        weight = PANGO_WEIGHT_BOLD;
-        break;
-    default:
-        foreground = "black";
-        weight = PANGO_WEIGHT_NORMAL;
-        break;
-    }
 
-    gtk_tree_store_set(conn->win->store, &guest,
-                       NAME_COL,       name,
-                       ID_COL,         idstr,
-                       STATE_COL,      domain_state_name(dom),
-                       FOREGROUND_COL, foreground,
-                       WEIGHT_COL,     weight,
-                       -1);
+    /* update tree store cols */
+    domain_update_tree_store(dom, &guest);
+}
+
+void domain_update_all(struct vconsole_window *win)
+{
+    GtkTreeModel *model = GTK_TREE_MODEL(win->store);
+    GtkTreeIter host, guest;
+    struct vconsole_connect *conn;
+    struct vconsole_domain *dom;
+    virDomainPtr d;
+    int rc;
+
+    /* all hosts */
+    rc = gtk_tree_model_get_iter_first(model, &host);
+    while (rc) {
+        gtk_tree_model_get(model, &host,
+                           CPTR_COL, &conn,
+                           -1);
+        /* all guests */
+        rc = gtk_tree_model_iter_nth_child(model, &guest, &host, 0);
+        while (rc) {
+            gtk_tree_model_get(model, &guest,
+                               DPTR_COL, &dom,
+                               -1);
+            /* update */
+            d = virDomainLookupByUUIDString(conn->ptr, dom->uuid);
+            domain_update_info(dom, d);
+            domain_update_tree_store(dom, &guest);
+            rc = gtk_tree_model_iter_next(model, &guest);
+        }
+        rc = gtk_tree_model_iter_next(model, &host);
+    }
 }
 
 void domain_activate(struct vconsole_domain *dom)
@@ -489,16 +543,14 @@ void domain_activate(struct vconsole_domain *dom)
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
     struct vconsole_window *win = dom->conn->win;
     GtkWidget *label, *fstatus;
-    const char *name;
     gint page;
 
     if (dom->vte) {
         page = gtk_notebook_page_num(GTK_NOTEBOOK(win->notebook), dom->vbox);
         gtk_notebook_set_current_page(GTK_NOTEBOOK(win->notebook), page);
     } else {
-        name = virDomainGetName(d);
         if (debug)
-            fprintf(stderr, "new tab: %s\n", name);
+            fprintf(stderr, "new tab: %s\n", dom->name);
 
         dom->vte = vte_terminal_new();
         g_signal_connect(dom->vte, "commit",
@@ -516,7 +568,7 @@ void domain_activate(struct vconsole_domain *dom)
         gtk_box_pack_end(GTK_BOX(dom->vbox), fstatus, FALSE, TRUE, 0);
         gtk_container_add(GTK_CONTAINER(fstatus), dom->status);
 
-        label = gtk_label_new(name);
+        label = gtk_label_new(dom->name);
         page = gtk_notebook_insert_page(GTK_NOTEBOOK(win->notebook),
                                         dom->vbox, label, -1);
         gtk_widget_show_all(dom->vbox);

@@ -5,8 +5,10 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <inttypes.h>
 
 #include <sys/stat.h>
+#include <sys/time.h>
 
 #include <gtk/gtk.h>
 #include <vte/vte.h>
@@ -27,6 +29,7 @@ enum vconsole_cols {
     DPTR_COL,  // vconsole_domain
     ID_COL,
     STATE_COL,
+    LOAD_COL,
 
     /* beautify */
     FOREGROUND_COL,
@@ -78,11 +81,18 @@ struct vconsole_connect *connect_init(struct vconsole_window *win,
 struct vconsole_domain {
     struct vconsole_connect   *conn;
     char                      uuid[VIR_UUID_STRING_BUFLEN];
+    char                      idstr[16];
+    const char                *name;
 
     GtkWidget                 *vbox, *vte, *status;
     virStreamPtr              stream;
     virDomainInfo             info;
     gboolean                  saved;
+
+    struct timeval            ts;
+    struct timeval            last_ts;
+    virDomainInfo             last_info;
+    int                       load;
 
     FILE                      *logfp;
     char                      *logname;
@@ -103,3 +113,5 @@ void domain_configure_all_vtes(struct vconsole_window *win);
 void domain_configure_all_logging(struct vconsole_window *win);
 struct vconsole_domain *domain_find_current_tab(struct vconsole_window *win);
 void domain_close_current_tab(struct vconsole_window *win);
+
+void domain_update_all(struct vconsole_window *win);
