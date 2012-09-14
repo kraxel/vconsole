@@ -280,18 +280,12 @@ static void domain_connect(struct vconsole_domain *dom, virDomainPtr d)
 
 static void domain_update_info(struct vconsole_domain *dom, virDomainPtr d)
 {
-    int id;
-
     dom->last_info = dom->info;
     dom->last_ts   = dom->ts;
 
     gettimeofday(&dom->ts, NULL);
     dom->name = virDomainGetName(d);
-    id = virDomainGetID(d);
-    if (id < 0)
-        strcpy(dom->idstr, "-");
-    else
-        snprintf(dom->idstr, sizeof(dom->idstr), "%d", id);
+    dom->id = virDomainGetID(d);
     virDomainGetInfo(d, &dom->info);
     dom->saved = virDomainHasManagedSaveImage(d, 0);
 
@@ -317,19 +311,22 @@ static void domain_update_tree_store(struct vconsole_domain *dom,
     case VIR_DOMAIN_RUNNING:
         foreground = "darkgreen";
         weight = PANGO_WEIGHT_BOLD;
-        snprintf(load, sizeof(load), "%d%%", dom->load);
         break;
     default:
         foreground = "black";
         weight = PANGO_WEIGHT_NORMAL;
-        strcpy(load, "");
         break;
     }
+    snprintf(load, sizeof(load), "%d%%", dom->load);
+
     gtk_tree_store_set(dom->conn->win->store, guest,
                        NAME_COL,       dom->name,
-                       ID_COL,         dom->idstr,
+                       ID_COL,         dom->id,
+                       RUNNING_COL,    dom->info.state == VIR_DOMAIN_RUNNING,
                        STATE_COL,      domain_state_name(dom),
-                       LOAD_COL,       load,
+                       NR_CPUS_COL,    dom->info.nrVirtCpu,
+                       LOAD_STR_COL,   load,
+                       LOAD_INT_COL,   MIN(dom->load / dom->info.nrVirtCpu, 100),
                        FOREGROUND_COL, foreground,
                        WEIGHT_COL,     weight,
                        -1);

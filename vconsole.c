@@ -765,9 +765,12 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
                                     G_TYPE_POINTER,  // CPTR_COL
                                     G_TYPE_STRING,   // URI_COL
                                     G_TYPE_POINTER,  // DPTR_COL
-                                    G_TYPE_STRING,   // ID_COL
+                                    G_TYPE_INT,      // ID_COL
+                                    G_TYPE_BOOLEAN,  // RUNNING_COL
                                     G_TYPE_STRING,   // STATE_COL
-                                    G_TYPE_STRING,   // LOAD_COL
+                                    G_TYPE_INT,      // NR_CPUS_COL
+                                    G_TYPE_STRING,   // LOAD_STR_COL
+                                    G_TYPE_INT,      // LOAD_INT_COL
                                     G_TYPE_STRING,   // FOREGROUND_COL
                                     G_TYPE_INT);     // WEIGHT_COL
     sortable = GTK_TREE_SORTABLE(win->store);
@@ -793,9 +796,11 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
 
     /* id */
     renderer = gtk_cell_renderer_text_new();
+    g_object_set(renderer, "xalign", 0.5, NULL);
     column = gtk_tree_view_column_new_with_attributes("ID",
                                                       renderer,
                                                       "text", ID_COL,
+                                                      "visible", RUNNING_COL,
                                                       NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(win->tree), column);
 
@@ -807,12 +812,31 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
                                                       NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(win->tree), column);
 
-    /* cpu load */
+    /* cpu count */
     renderer = gtk_cell_renderer_text_new();
-    column = gtk_tree_view_column_new_with_attributes("CPU",
+    g_object_set(renderer, "xalign", 0.5, NULL);
+    column = gtk_tree_view_column_new_with_attributes("vcpus",
                                                       renderer,
-                                                      "text", LOAD_COL,
+                                                      "text", NR_CPUS_COL,
+                                                      "visible", RUNNING_COL,
                                                       NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(win->tree), column);
+
+    /* cpu load */
+    renderer = gtk_cell_renderer_progress_new();
+    g_object_set(renderer, "width", 100, NULL);
+    column = gtk_tree_view_column_new_with_attributes("Load",
+                                                      renderer,
+                                                      "text", LOAD_STR_COL,
+                                                      "value", LOAD_INT_COL,
+                                                      "visible", RUNNING_COL,
+                                                      NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(win->tree), column);
+
+    /* padding */
+    renderer = gtk_cell_renderer_text_new();
+    g_object_set(renderer, "visible", FALSE, NULL);
+    column = gtk_tree_view_column_new_with_attributes("", renderer, NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(win->tree), column);
 
     /* sort store */

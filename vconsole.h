@@ -28,8 +28,11 @@ enum vconsole_cols {
     /* guests only */
     DPTR_COL,  // vconsole_domain
     ID_COL,
+    RUNNING_COL,
     STATE_COL,
-    LOAD_COL,
+    NR_CPUS_COL,
+    LOAD_STR_COL,
+    LOAD_INT_COL,
 
     /* beautify */
     FOREGROUND_COL,
@@ -81,7 +84,7 @@ struct vconsole_connect *connect_init(struct vconsole_window *win,
 struct vconsole_domain {
     struct vconsole_connect   *conn;
     char                      uuid[VIR_UUID_STRING_BUFLEN];
-    char                      idstr[16];
+    int                       id;
     const char                *name;
 
     GtkWidget                 *vbox, *vte, *status;
