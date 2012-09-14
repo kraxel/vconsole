@@ -298,6 +298,15 @@ static void menu_cb_vm_shutdown(GtkAction *action, void *data)
         domain_shutdown(dom);
 }
 
+static void menu_cb_vm_reset(GtkAction *action, void *data)
+{
+    struct vconsole_window *win = data;
+    struct vconsole_domain *dom = find_guest(win);
+
+    if (dom)
+        domain_reset(dom);
+}
+
 static void menu_cb_vm_kill(GtkAction *action, void *data)
 {
     struct vconsole_window *win = data;
@@ -449,9 +458,14 @@ static const GtkActionEntry entries[] = {
         .tooltip     = "Shutdown guest",
 	.callback    = G_CALLBACK(menu_cb_vm_shutdown),
     },{
+	.name        = "GuestReset",
+	.label       = "Reset",
+        .tooltip     = "Reset guest",
+	.callback    = G_CALLBACK(menu_cb_vm_reset),
+    },{
 	.name        = "GuestKill",
 	.label       = "Destroy",
-        .tooltip     = "Destroy guest",
+        .tooltip     = "Destriy guest",
 	.callback    = G_CALLBACK(menu_cb_vm_kill),
 
     },{
@@ -516,6 +530,7 @@ static char ui_xml[] =
 "      <menuitem action='GuestReboot'/>\n"
 "      <menuitem action='GuestShutdown'/>\n"
 "      <separator/>\n"
+"      <menuitem action='GuestReset'/>\n"
 "      <menuitem action='GuestKill'/>\n"
 "    </menu>\n"
 "    <menu action='HelpMenu'>\n"

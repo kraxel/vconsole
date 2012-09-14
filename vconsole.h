@@ -106,6 +106,7 @@ void domain_pause(struct vconsole_domain *dom);
 void domain_save(struct vconsole_domain *dom);
 void domain_reboot(struct vconsole_domain *dom);
 void domain_shutdown(struct vconsole_domain *dom);
+void domain_reset(struct vconsole_domain *dom);
 void domain_kill(struct vconsole_domain *dom);
 
 void domain_free(struct vconsole_domain *dom);

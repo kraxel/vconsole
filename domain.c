@@ -413,6 +413,21 @@ void domain_shutdown(struct vconsole_domain *dom)
     }
 }
 
+void domain_reset(struct vconsole_domain *dom)
+{
+    virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
+
+    domain_update_info(dom, d);
+    switch (dom->info.state) {
+    case VIR_DOMAIN_RUNNING:
+        virDomainReset(d, 0);
+        break;
+    default:
+        fprintf(stderr, "%s: invalid guest state: %s\n",
+                __func__, domain_state_name(dom));
+    }
+}
+
 void domain_kill(struct vconsole_domain *dom)
 {
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
