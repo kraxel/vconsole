@@ -61,6 +61,10 @@ install: build
 	$(INSTALL_DATA) vconsole.man $(mandir)/man1/vconsole.1
 	$(INSTALL_DATA) $(DESKTOP) $(appdir)
 
+valgrind: vconsole
+	rm -f valgrind.log
+	valgrind --log-file=valgrind.log ./vconsole
+
 clean:
 	-rm -f *.o *~ $(depfiles)
 
