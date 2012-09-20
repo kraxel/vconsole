@@ -5,6 +5,9 @@ include mk/Variables.mk
 # add our flags + libs
 CFLAGS	+= -DVERSION='"$(VERSION)"' -DLIB='"$(LIB)"'
 
+# valgrind options
+VFLAGS	:= --leak-check=full --show-possibly-lost=no 
+
 # build
 TARGETS		:= vconsole
 
@@ -63,7 +66,7 @@ install: build
 
 valgrind: vconsole
 	rm -f valgrind.log
-	valgrind --log-file=valgrind.log ./vconsole
+	valgrind $(VFLAGS) --log-file=valgrind.log ./vconsole
 
 clean:
 	-rm -f *.o *~ $(depfiles)
