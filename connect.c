@@ -89,13 +89,13 @@ struct vconsole_connect *connect_init(struct vconsole_window *win,
 
     conn = g_new0(struct vconsole_connect, 1);
     conn->ptr = virConnectOpen(uri);
-    name = virConnectGetHostname(conn->ptr);
     if (conn->ptr == NULL) {
         fprintf(stderr, "Failed to open connection to %s\n", uri);
         g_free(conn);
         return NULL;
     }
     conn->win = win;
+    name = virConnectGetHostname(conn->ptr);
     virConnectDomainEventRegister(conn->ptr, connect_domain_event,
                                   conn, NULL);
 #if LIBVIR_VERSION_NUMBER >= 10000 /* 0.10.0 */
@@ -117,6 +117,8 @@ struct vconsole_connect *connect_init(struct vconsole_window *win,
     g_key_file_set_string(config, "hosts", name, uri);
     config_write();
     connect_list(conn);
+
+    free(name);
 
     return conn;
 }

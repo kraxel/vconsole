@@ -106,12 +106,17 @@ static void menu_cb_connect_menu(GtkAction *action, gpointer userdata)
     struct vconsole_window *win = userdata;
     GError *err = NULL;
     char name[128];
+    char *uri;
 
     if (1 != sscanf(gtk_action_get_name(action), "ConnectMenu_%127s", name))
 	return;
     if (debug)
         fprintf(stderr, "%s: %s\n", __func__, name);
-    connect_init(win, g_key_file_get_string(config, "hosts", name, &err));
+    uri = g_key_file_get_string(config, "hosts", name, &err);
+    if (uri) {
+        connect_init(win, uri);
+        g_free(uri);
+    }
 }
 
 static void menu_cb_close_tab(GtkAction *action, gpointer userdata)
@@ -624,6 +629,7 @@ static void vconsole_build_recent(struct vconsole_window *win)
         g_free(h);
         g_free(action);
     }
+    g_free(keys);
 
     /* finish */
     xml = g_strdup_printf(recent_xml, entries ? entries : "");
@@ -755,16 +761,22 @@ static gint gtk_sort_iter_compare_str(GtkTreeModel *model,
 {
     gint sortcol = GPOINTER_TO_INT(userdata);
     char *aa,*bb;
+    int ret;
 
     gtk_tree_model_get(model, a, sortcol, &aa, -1);
     gtk_tree_model_get(model, b, sortcol, &bb, -1);
-    if (NULL == aa && NULL == bb)
-        return 0;
-    if (NULL == aa)
-        return 1;
-    if (NULL == bb)
-        return -1;
-    return strcmp(aa,bb);
+    if (NULL == aa && NULL == bb) {
+        ret = 0;
+    } else if (NULL == aa) {
+        ret = 1;
+    } else if (NULL == bb) {
+        ret = -1;
+    } else {
+        ret = strcmp(aa,bb);
+    }
+    g_free(aa);
+    g_free(bb);
+    return ret;
 }
 
 static void vconsole_tab_list_create(struct vconsole_window *win)

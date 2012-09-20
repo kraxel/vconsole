@@ -112,8 +112,6 @@ err:
 
 static void domain_log_open(struct vconsole_domain *dom)
 {
-    virDomainPtr d;
-
     if (!dom->conn->win->vm_logging)
         return;
     if (!dom->stream)
@@ -121,7 +119,6 @@ static void domain_log_open(struct vconsole_domain *dom)
     if (dom->logfp)
         return;
 
-    d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
     dom->logname = g_strdup_printf("%s/vconsole/%s/%s.log",
                                    getenv("HOME"),
                                    virConnectGetHostname(dom->conn->ptr),
@@ -235,6 +232,7 @@ static void domain_console_event(virStreamPtr stream, int events, void *opaque)
             fprintf(stderr, "%s: %s hangup\n", __func__, dom->name);
         domain_disconnect(dom, d);
     }
+    virDomainFree(d);
 }
 
 static void domain_user_input(VteTerminal *vte, gchar *buf, guint len,
@@ -283,8 +281,11 @@ static void domain_update_info(struct vconsole_domain *dom, virDomainPtr d)
     dom->last_info = dom->info;
     dom->last_ts   = dom->ts;
 
+    if (dom->name)
+        g_free(dom->name);
+
     gettimeofday(&dom->ts, NULL);
-    dom->name = virDomainGetName(d);
+    dom->name = g_strdup(virDomainGetName(d));
     dom->id = virDomainGetID(d);
     virDomainGetInfo(d, &dom->info);
     dom->saved = virDomainHasManagedSaveImage(d, 0);
@@ -350,6 +351,7 @@ void domain_start(struct vconsole_domain *dom)
         fprintf(stderr, "%s: invalid guest state: %s\n",
                 __func__, domain_state_name(dom));
     }
+    virDomainFree(d);
 }
 
 void domain_pause(struct vconsole_domain *dom)
@@ -365,6 +367,7 @@ void domain_pause(struct vconsole_domain *dom)
         fprintf(stderr, "%s: invalid guest state: %s\n",
                 __func__, domain_state_name(dom));
     }
+    virDomainFree(d);
 }
 
 void domain_save(struct vconsole_domain *dom)
@@ -381,6 +384,7 @@ void domain_save(struct vconsole_domain *dom)
         fprintf(stderr, "%s: invalid guest state: %s\n",
                 __func__, domain_state_name(dom));
     }
+    virDomainFree(d);
 }
 
 void domain_reboot(struct vconsole_domain *dom)
@@ -396,6 +400,7 @@ void domain_reboot(struct vconsole_domain *dom)
         fprintf(stderr, "%s: invalid guest state: %s\n",
                 __func__, domain_state_name(dom));
     }
+    virDomainFree(d);
 }
 
 void domain_shutdown(struct vconsole_domain *dom)
@@ -411,6 +416,7 @@ void domain_shutdown(struct vconsole_domain *dom)
         fprintf(stderr, "%s: invalid guest state: %s\n",
                 __func__, domain_state_name(dom));
     }
+    virDomainFree(d);
 }
 
 void domain_reset(struct vconsole_domain *dom)
@@ -426,6 +432,7 @@ void domain_reset(struct vconsole_domain *dom)
         fprintf(stderr, "%s: invalid guest state: %s\n",
                 __func__, domain_state_name(dom));
     }
+    virDomainFree(d);
 }
 
 void domain_kill(struct vconsole_domain *dom)
@@ -441,6 +448,7 @@ void domain_kill(struct vconsole_domain *dom)
         fprintf(stderr, "%s: invalid guest state: %s\n",
                 __func__, domain_state_name(dom));
     }
+    virDomainFree(d);
 }
 
 void domain_free(struct vconsole_domain *dom)
@@ -449,6 +457,7 @@ void domain_free(struct vconsole_domain *dom)
 
     domain_close_tab(dom, d);
     g_free(dom);
+    virDomainFree(d);
 }
 
 void domain_update(struct vconsole_connect *conn,
@@ -544,6 +553,7 @@ void domain_update_all(struct vconsole_window *win)
             d = virDomainLookupByUUIDString(conn->ptr, dom->uuid);
             domain_update_info(dom, d);
             domain_update_tree_store(dom, &guest);
+            virDomainFree(d);
             rc = gtk_tree_model_iter_next(model, &guest);
         }
         rc = gtk_tree_model_iter_next(model, &host);
@@ -590,6 +600,7 @@ void domain_activate(struct vconsole_domain *dom)
     }
 
     domain_connect(dom, d);
+    virDomainFree(d);
 }
 
 struct vconsole_domain *domain_find_current_tab(struct vconsole_window *win)
@@ -628,6 +639,7 @@ void domain_close_current_tab(struct vconsole_window *win)
     if (dom) {
         d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
         domain_close_tab(dom, d);
+        virDomainFree(d);
     }
 }
 
