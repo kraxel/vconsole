@@ -282,7 +282,7 @@ static void domain_update_info(struct vconsole_domain *dom, virDomainPtr d)
     dom->last_ts   = dom->ts;
 
     if (dom->name)
-        g_free(dom->name);
+        g_free((gpointer)dom->name);
 
     gettimeofday(&dom->ts, NULL);
     dom->name = g_strdup(virDomainGetName(d));
@@ -305,7 +305,7 @@ static void domain_update_tree_store(struct vconsole_domain *dom,
                                      GtkTreeIter *guest)
 {
     const char *foreground;
-    char load[16];
+    char load[16], mem[16];
     PangoWeight weight;
 
     switch (dom->info.state) {
@@ -319,6 +319,7 @@ static void domain_update_tree_store(struct vconsole_domain *dom,
         break;
     }
     snprintf(load, sizeof(load), "%d%%", dom->load);
+    snprintf(mem, sizeof(mem), "%ld M", dom->info.memory / 1024);
 
     gtk_tree_store_set(dom->conn->win->store, guest,
                        NAME_COL,       dom->name,
@@ -328,6 +329,7 @@ static void domain_update_tree_store(struct vconsole_domain *dom,
                        NR_CPUS_COL,    dom->info.nrVirtCpu,
                        LOAD_STR_COL,   load,
                        LOAD_INT_COL,   MIN(dom->load / dom->info.nrVirtCpu, 100),
+                       MEMORY_COL,     mem,
                        FOREGROUND_COL, foreground,
                        WEIGHT_COL,     weight,
                        -1);

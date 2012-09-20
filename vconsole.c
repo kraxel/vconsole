@@ -799,6 +799,7 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
                                     G_TYPE_INT,      // NR_CPUS_COL
                                     G_TYPE_STRING,   // LOAD_STR_COL
                                     G_TYPE_INT,      // LOAD_INT_COL
+                                    G_TYPE_STRING,   // MEMORY_COL
                                     G_TYPE_STRING,   // FOREGROUND_COL
                                     G_TYPE_INT);     // WEIGHT_COL
     sortable = GTK_TREE_SORTABLE(win->store);
@@ -837,6 +838,16 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
     column = gtk_tree_view_column_new_with_attributes("State",
                                                       renderer,
                                                       "text", STATE_COL,
+                                                      NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(win->tree), column);
+
+    /* memory */
+    renderer = gtk_cell_renderer_text_new();
+    g_object_set(renderer, "xalign", 1.0, NULL);
+    column = gtk_tree_view_column_new_with_attributes("memory",
+                                                      renderer,
+                                                      "text", MEMORY_COL,
+                                                      "visible", RUNNING_COL,
                                                       NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(win->tree), column);
 

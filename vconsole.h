@@ -33,6 +33,7 @@ enum vconsole_cols {
     NR_CPUS_COL,
     LOAD_STR_COL,
     LOAD_INT_COL,
+    MEMORY_COL,
 
     /* beautify */
     FOREGROUND_COL,
