@@ -39,6 +39,7 @@ void config_write(void)
     write(fd, data, len);
     fsync(fd);
     close(fd);
+    g_free(data);
 }
 
 /* ------------------------------------------------------------------ */
@@ -629,7 +630,7 @@ static void vconsole_build_recent(struct vconsole_window *win)
         g_free(h);
         g_free(action);
     }
-    g_free(keys);
+    g_strfreev(keys);
 
     /* finish */
     xml = g_strdup_printf(recent_xml, entries ? entries : "");

@@ -58,6 +58,7 @@ static void connect_close(virConnectPtr c, int reason, void *opaque)
 
 static void connect_list(struct vconsole_connect *conn)
 {
+    virDomainPtr d;
     int i, n;
     char **inactive;
     int *active;
@@ -66,7 +67,9 @@ static void connect_list(struct vconsole_connect *conn)
     active = malloc(sizeof(int) * n);
     n = virConnectListDomains(conn->ptr, active, n);
     for (i = 0; i < n; i++) {
-        domain_update(conn, virDomainLookupByID(conn->ptr, active[i]), -1);
+        d = virDomainLookupByID(conn->ptr, active[i]);
+        domain_update(conn, d, -1);
+        virDomainFree(d);
     }
     free(active);
 
@@ -74,7 +77,9 @@ static void connect_list(struct vconsole_connect *conn)
     inactive = malloc(sizeof(char *) * n);
     n = virConnectListDefinedDomains(conn->ptr, inactive, n);
     for (i = 0; i < n; i++) {
-        domain_update(conn, virDomainLookupByName(conn->ptr, inactive[i]), -1);
+        d = virDomainLookupByName(conn->ptr, inactive[i]);
+        domain_update(conn, d, -1);
+        virDomainFree(d);
         free(inactive[i]);
     }
     free(inactive);
