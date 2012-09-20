@@ -324,7 +324,8 @@ static void domain_update_tree_store(struct vconsole_domain *dom,
     gtk_tree_store_set(dom->conn->win->store, guest,
                        NAME_COL,       dom->name,
                        ID_COL,         dom->id,
-                       RUNNING_COL,    dom->info.state == VIR_DOMAIN_RUNNING,
+                       IS_RUNNING_COL, dom->info.state == VIR_DOMAIN_RUNNING,
+                       HAS_MEMCPU_COL, dom->info.state == VIR_DOMAIN_RUNNING,
                        STATE_COL,      domain_state_name(dom),
                        NR_CPUS_COL,    dom->info.nrVirtCpu,
                        LOAD_STR_COL,   load,
@@ -536,7 +537,9 @@ void domain_update_all(struct vconsole_window *win)
     GtkTreeIter host, guest;
     struct vconsole_connect *conn;
     struct vconsole_domain *dom;
+    char mem[16];
     virDomainPtr d;
+    unsigned long memory, vcpus;
     int rc;
 
     /* all hosts */
@@ -545,6 +548,10 @@ void domain_update_all(struct vconsole_window *win)
         gtk_tree_model_get(model, &host,
                            CPTR_COL, &conn,
                            -1);
+
+        memory = 0;
+        vcpus = 0;
+
         /* all guests */
         rc = gtk_tree_model_iter_nth_child(model, &guest, &host, 0);
         while (rc) {
@@ -554,10 +561,22 @@ void domain_update_all(struct vconsole_window *win)
             /* update */
             d = virDomainLookupByUUIDString(conn->ptr, dom->uuid);
             domain_update_info(dom, d);
+            if (dom->info.state == VIR_DOMAIN_RUNNING) {
+                memory += dom->info.memory;
+                vcpus  += dom->info.nrVirtCpu;
+            }
             domain_update_tree_store(dom, &guest);
             virDomainFree(d);
             rc = gtk_tree_model_iter_next(model, &guest);
         }
+
+        snprintf(mem, sizeof(mem), "%ld M", memory / 1024);
+        gtk_tree_store_set(win->store,     &host,
+                           NR_CPUS_COL,    vcpus,
+                           MEMORY_COL,     mem,
+                           HAS_MEMCPU_COL, (gboolean)(memory > 0),
+                           -1);
+
         rc = gtk_tree_model_iter_next(model, &host);
     }
 }

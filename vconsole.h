@@ -28,12 +28,15 @@ enum vconsole_cols {
     /* guests only */
     DPTR_COL,  // vconsole_domain
     ID_COL,
-    RUNNING_COL,
     STATE_COL,
     NR_CPUS_COL,
     LOAD_STR_COL,
     LOAD_INT_COL,
     MEMORY_COL,
+
+    /* flags */
+    IS_RUNNING_COL,
+    HAS_MEMCPU_COL,
 
     /* beautify */
     FOREGROUND_COL,

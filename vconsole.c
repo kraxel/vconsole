@@ -794,12 +794,13 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
                                     G_TYPE_STRING,   // URI_COL
                                     G_TYPE_POINTER,  // DPTR_COL
                                     G_TYPE_INT,      // ID_COL
-                                    G_TYPE_BOOLEAN,  // RUNNING_COL
                                     G_TYPE_STRING,   // STATE_COL
                                     G_TYPE_INT,      // NR_CPUS_COL
                                     G_TYPE_STRING,   // LOAD_STR_COL
                                     G_TYPE_INT,      // LOAD_INT_COL
                                     G_TYPE_STRING,   // MEMORY_COL
+                                    G_TYPE_BOOLEAN,  // IS_RUNNING_COL
+                                    G_TYPE_BOOLEAN,  // HAS_MEMCPU_COL
                                     G_TYPE_STRING,   // FOREGROUND_COL
                                     G_TYPE_INT);     // WEIGHT_COL
     sortable = GTK_TREE_SORTABLE(win->store);
@@ -829,7 +830,7 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
     column = gtk_tree_view_column_new_with_attributes("ID",
                                                       renderer,
                                                       "text", ID_COL,
-                                                      "visible", RUNNING_COL,
+                                                      "visible", IS_RUNNING_COL,
                                                       NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(win->tree), column);
 
@@ -847,7 +848,7 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
     column = gtk_tree_view_column_new_with_attributes("memory",
                                                       renderer,
                                                       "text", MEMORY_COL,
-                                                      "visible", RUNNING_COL,
+                                                      "visible", HAS_MEMCPU_COL,
                                                       NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(win->tree), column);
 
@@ -857,7 +858,7 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
     column = gtk_tree_view_column_new_with_attributes("vcpus",
                                                       renderer,
                                                       "text", NR_CPUS_COL,
-                                                      "visible", RUNNING_COL,
+                                                      "visible", HAS_MEMCPU_COL,
                                                       NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(win->tree), column);
 
@@ -868,7 +869,7 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
                                                       renderer,
                                                       "text", LOAD_STR_COL,
                                                       "value", LOAD_INT_COL,
-                                                      "visible", RUNNING_COL,
+                                                      "visible", IS_RUNNING_COL,
                                                       NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(win->tree), column);
 
