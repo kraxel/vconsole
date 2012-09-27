@@ -83,6 +83,8 @@ struct vconsole_connect {
 
 struct vconsole_connect *connect_init(struct vconsole_window *win,
                                       const char *uri);
+void connect_close(virConnectPtr c, int reason, void *opaque);
+
 /* ------------------------------------------------------------------ */
 
 struct vconsole_domain {

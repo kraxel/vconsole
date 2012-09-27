@@ -14,9 +14,7 @@ static int connect_domain_event(virConnectPtr c, virDomainPtr d,
     return 0;
 }
 
-#if LIBVIR_VERSION_NUMBER >= 10000 /* 0.10.0 */
-
-static void connect_close(virConnectPtr c, int reason, void *opaque)
+void connect_close(virConnectPtr c, int reason, void *opaque)
 {
     struct vconsole_connect *conn = opaque;
     GtkTreeModel *model = GTK_TREE_MODEL(conn->win->store);
@@ -53,8 +51,6 @@ static void connect_close(virConnectPtr c, int reason, void *opaque)
     gtk_tree_store_remove(conn->win->store, &host);
     g_free(conn);
 }
-
-#endif
 
 static void connect_list(struct vconsole_connect *conn)
 {

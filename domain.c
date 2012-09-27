@@ -276,19 +276,32 @@ static void domain_connect(struct vconsole_domain *dom, virDomainPtr d)
     domain_update_status(dom);
 }
 
-static void domain_update_info(struct vconsole_domain *dom, virDomainPtr d)
+static int domain_update_info(struct vconsole_domain *dom, virDomainPtr d)
 {
-    dom->last_info = dom->info;
-    dom->last_ts   = dom->ts;
+    struct timeval ts;
+    const char *name;
+    int id, rc;
+    gboolean saved;
+    virDomainInfo info;
+
+    gettimeofday(&ts, NULL);
+    name = virDomainGetName(d);
+    id = virDomainGetID(d);
+    saved = virDomainHasManagedSaveImage(d, 0);
+    rc = virDomainGetInfo(d, &info);
+    if (rc != 0) {
+        return rc;
+    }
 
     if (dom->name)
         g_free((gpointer)dom->name);
-
-    gettimeofday(&dom->ts, NULL);
-    dom->name = g_strdup(virDomainGetName(d));
-    dom->id = virDomainGetID(d);
-    virDomainGetInfo(d, &dom->info);
-    dom->saved = virDomainHasManagedSaveImage(d, 0);
+    dom->last_info = dom->info;
+    dom->last_ts   = dom->ts;
+    dom->ts        = ts;
+    dom->name      = g_strdup(name);
+    dom->id        = id;
+    dom->saved     = saved;
+    dom->info      = info;
 
     if (dom->last_ts.tv_sec) {
         uint64_t real, cpu;
@@ -299,6 +312,7 @@ static void domain_update_info(struct vconsole_domain *dom, virDomainPtr d)
     }
 
     domain_update_status(dom);
+    return 0;
 }
 
 static void domain_update_tree_store(struct vconsole_domain *dom,
@@ -540,7 +554,7 @@ void domain_update_all(struct vconsole_window *win)
     char mem[16];
     virDomainPtr d;
     unsigned long memory, vcpus;
-    int rc;
+    int rc, domcount, errcount;
 
     /* all hosts */
     rc = gtk_tree_model_get_iter_first(model, &host);
@@ -551,23 +565,39 @@ void domain_update_all(struct vconsole_window *win)
 
         memory = 0;
         vcpus = 0;
+        domcount = 0;
+        errcount = 0;
 
         /* all guests */
         rc = gtk_tree_model_iter_nth_child(model, &guest, &host, 0);
         while (rc) {
+            domcount++;
             gtk_tree_model_get(model, &guest,
                                DPTR_COL, &dom,
                                -1);
             /* update */
             d = virDomainLookupByUUIDString(conn->ptr, dom->uuid);
-            domain_update_info(dom, d);
+            if (d == NULL) {
+                errcount++;
+            } else if (0 != domain_update_info(dom, d)) {
+                errcount++;
+            }
             if (dom->info.state == VIR_DOMAIN_RUNNING) {
                 memory += dom->info.memory;
                 vcpus  += dom->info.nrVirtCpu;
             }
             domain_update_tree_store(dom, &guest);
-            virDomainFree(d);
+            if (d)
+                virDomainFree(d);
             rc = gtk_tree_model_iter_next(model, &guest);
+        }
+        if (errcount) {
+            fprintf(stderr, "%s: %d/%d\n", __func__, errcount, domcount);
+        }
+        if (errcount && errcount == domcount) {
+            /* all domains failed, disconnected ? */
+            connect_close(conn->ptr, 0, conn);
+            return;
         }
 
         snprintf(mem, sizeof(mem), "%ld M", memory / 1024);
