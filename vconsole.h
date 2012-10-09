@@ -14,6 +14,7 @@
 #include <vte/vte.h>
 
 #include <libvirt/libvirt.h>
+#include <libvirt/virterror.h>
 
 /* ------------------------------------------------------------------ */
 
@@ -71,6 +72,9 @@ struct vconsole_window {
 
 extern int debug;
 extern GKeyFile *config;
+
+int gtk_message(GtkWidget *window, GtkMessageType type, char *fmt, ...)
+    __attribute__ ((format (printf, 3, 0)));
 
 void config_write(void);
 

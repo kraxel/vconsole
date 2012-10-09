@@ -14,6 +14,25 @@ static int connect_domain_event(virConnectPtr c, virDomainPtr d,
     return 0;
 }
 
+static void connect_error(void *opaque, virErrorPtr err)
+{
+    struct vconsole_connect *conn = opaque;
+    GtkMessageType type;
+
+    switch (err->level) {
+    case VIR_ERR_WARNING:
+        type = GTK_MESSAGE_WARNING;
+        break;
+    case VIR_ERR_ERROR:
+        type = GTK_MESSAGE_ERROR;
+        break;
+    default:
+        type = GTK_MESSAGE_INFO;
+        break;
+    }
+    gtk_message(conn->win->toplevel, type, "%s", err->message);
+}
+
 void connect_close(virConnectPtr c, int reason, void *opaque)
 {
     struct vconsole_connect *conn = opaque;
@@ -91,7 +110,8 @@ struct vconsole_connect *connect_init(struct vconsole_window *win,
     conn = g_new0(struct vconsole_connect, 1);
     conn->ptr = virConnectOpen(uri);
     if (conn->ptr == NULL) {
-        fprintf(stderr, "Failed to open connection to %s\n", uri);
+        gtk_message(win->toplevel, GTK_MESSAGE_ERROR,
+                    "Failed to open connection to %s\n", uri);
         g_free(conn);
         return NULL;
     }
@@ -99,6 +119,7 @@ struct vconsole_connect *connect_init(struct vconsole_window *win,
     name = virConnectGetHostname(conn->ptr);
     virConnectDomainEventRegister(conn->ptr, connect_domain_event,
                                   conn, NULL);
+    virConnSetErrorFunc(conn->ptr, conn, connect_error);
 #if LIBVIR_VERSION_NUMBER >= 10000 /* 0.10.0 */
     virConnectRegisterCloseCallback(conn->ptr, connect_close,
                                     conn, NULL);

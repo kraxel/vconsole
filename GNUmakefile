@@ -35,6 +35,9 @@ CFLAGS += -Wno-deprecated-declarations
 wanted := $(HAVE_GLIB)-$(HAVE_GTHREAD)-$(HAVE_GTK3)-$(HAVE_VTE3)-$(HAVE_LIBVIRT)
 pkglst := glib-2.0 gthread-2.0 gtk+-3.0 vte-2.90 libvirt
 else
+CFLAGS += -DGTK_DISABLE_SINGLE_INCLUDES
+CFLAGS += -DGTK_DISABLE_DEPRECATED
+CFLAGS += -DGSEAL_ENABLE
 wanted := $(HAVE_GLIB)-$(HAVE_GTHREAD)-$(HAVE_GTK2)-$(HAVE_VTE2)-$(HAVE_LIBVIRT)
 pkglst := glib-2.0 gthread-2.0 gtk+-2.0 vte libvirt
 endif

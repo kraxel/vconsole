@@ -44,6 +44,37 @@ void config_write(void)
 
 /* ------------------------------------------------------------------ */
 
+static char *gtk_msg_type_name[] = {
+    [ GTK_MESSAGE_INFO ]     = "INFO",
+    [ GTK_MESSAGE_WARNING ]  = "WARNING",
+    [ GTK_MESSAGE_QUESTION ] = "QUESTION",
+    [ GTK_MESSAGE_ERROR ]    = "ERROR",
+};
+
+int gtk_message(GtkWidget *window, GtkMessageType type, char *fmt, ...)
+{
+    va_list args;
+    GtkWidget *dialog;
+    char msgbuf[1024];
+    int rc;
+
+    va_start(args, fmt);
+    rc = vsnprintf(msgbuf, sizeof(msgbuf), fmt, args);
+    va_end(args);
+
+    if (debug)
+	fprintf(stderr, "%s: %s", gtk_msg_type_name[type], msgbuf);
+    dialog = gtk_message_dialog_new(GTK_WINDOW(window),
+				    GTK_DIALOG_DESTROY_WITH_PARENT,
+				    type, GTK_BUTTONS_CLOSE,
+				    "%s", msgbuf);
+    g_signal_connect_swapped(dialog, "response",
+			     G_CALLBACK (gtk_widget_destroy),
+			     dialog);
+    gtk_widget_show_all(dialog);
+    return rc;
+}
+
 static int gtk_getstring(GtkWidget *window, char *title, char *message,
                          char *dest, int dlen)
 {
@@ -89,6 +120,8 @@ static int gtk_getstring(GtkWidget *window, char *title, char *message,
     gtk_widget_destroy(dialog);
     return retval;
 }
+
+/* ------------------------------------------------------------------ */
 
 static void menu_cb_connect_ask(GtkAction *action, gpointer userdata)
 {

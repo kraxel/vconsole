@@ -647,10 +647,12 @@ void domain_activate(struct vconsole_domain *dom)
         gtk_widget_show_all(dom->vbox);
         gtk_notebook_set_current_page(GTK_NOTEBOOK(win->notebook), page);
         domain_configure_vte(dom);
-        domain_update_status(dom);
+
+        domain_update_info(dom, d);
+        if (dom->info.state == VIR_DOMAIN_RUNNING)
+            domain_connect(dom, d);
     }
 
-    domain_connect(dom, d);
     virDomainFree(d);
 }
 
