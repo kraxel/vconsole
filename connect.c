@@ -19,6 +19,13 @@ static void connect_error(void *opaque, virErrorPtr err)
     struct vconsole_connect *conn = opaque;
     GtkMessageType type;
 
+    switch (err->domain) {
+    case VIR_FROM_STREAMS:  /* get one on guest shutdown, ignore */
+        return;
+    default:
+        break;
+    }
+
     switch (err->level) {
     case VIR_ERR_WARNING:
         type = GTK_MESSAGE_WARNING;
@@ -30,7 +37,11 @@ static void connect_error(void *opaque, virErrorPtr err)
         type = GTK_MESSAGE_INFO;
         break;
     }
-    gtk_message(conn->win->toplevel, type, "%s", err->message);
+    gtk_message(conn->win->toplevel, type,
+                "%s\n\n"
+                "[code %d, domain %d]",
+                err->message,
+                err->code, err->domain);
 }
 
 void connect_close(virConnectPtr c, int reason, void *opaque)

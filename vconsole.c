@@ -67,7 +67,9 @@ int gtk_message(GtkWidget *window, GtkMessageType type, char *fmt, ...)
     dialog = gtk_message_dialog_new(GTK_WINDOW(window),
 				    GTK_DIALOG_DESTROY_WITH_PARENT,
 				    type, GTK_BUTTONS_CLOSE,
-				    "%s", msgbuf);
+				    "%s", gtk_msg_type_name[type]);
+    gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
+                                             "%s", msgbuf);
     g_signal_connect_swapped(dialog, "response",
 			     G_CALLBACK (gtk_widget_destroy),
 			     dialog);
