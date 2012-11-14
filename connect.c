@@ -18,6 +18,7 @@ static void connect_error(void *opaque, virErrorPtr err)
 {
     struct vconsole_connect *conn = opaque;
     GtkMessageType type;
+    GtkWidget **dialog;
 
     switch (err->domain) {
     case VIR_FROM_STREAMS:  /* get one on guest shutdown, ignore */
@@ -29,17 +30,19 @@ static void connect_error(void *opaque, virErrorPtr err)
     switch (err->level) {
     case VIR_ERR_WARNING:
         type = GTK_MESSAGE_WARNING;
+        dialog = &conn->warn;
         break;
     case VIR_ERR_ERROR:
         type = GTK_MESSAGE_ERROR;
+        dialog = &conn->err;
         break;
     default:
         type = GTK_MESSAGE_INFO;
+        dialog = &conn->info;
         break;
     }
-    gtk_message(conn->win->toplevel, type,
-                "%s\n\n"
-                "[code %d, domain %d]",
+    gtk_message(conn->win->toplevel, dialog, type,
+                "%s [ %d / %d]\n",
                 err->message,
                 err->code, err->domain);
 }
@@ -121,7 +124,7 @@ struct vconsole_connect *connect_init(struct vconsole_window *win,
     conn = g_new0(struct vconsole_connect, 1);
     conn->ptr = virConnectOpen(uri);
     if (conn->ptr == NULL) {
-        gtk_message(win->toplevel, GTK_MESSAGE_ERROR,
+        gtk_message(win->toplevel, NULL, GTK_MESSAGE_ERROR,
                     "Failed to open connection to %s\n", uri);
         g_free(conn);
         return NULL;

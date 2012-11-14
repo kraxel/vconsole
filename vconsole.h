@@ -73,8 +73,9 @@ struct vconsole_window {
 extern int debug;
 extern GKeyFile *config;
 
-int gtk_message(GtkWidget *window, GtkMessageType type, char *fmt, ...)
-    __attribute__ ((format (printf, 3, 0)));
+void gtk_message(GtkWidget *parent, GtkWidget **dialog, GtkMessageType type,
+                char *fmt, ...)
+    __attribute__ ((format (printf, 4, 0)));
 
 void config_write(void);
 
@@ -83,6 +84,9 @@ void config_write(void);
 struct vconsole_connect {
     struct vconsole_window    *win;
     virConnectPtr             ptr;
+    GtkWidget                 *warn;
+    GtkWidget                 *err;
+    GtkWidget                 *info;
 };
 
 struct vconsole_connect *connect_init(struct vconsole_window *win,

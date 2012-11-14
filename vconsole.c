@@ -51,30 +51,49 @@ static char *gtk_msg_type_name[] = {
     [ GTK_MESSAGE_ERROR ]    = "ERROR",
 };
 
-int gtk_message(GtkWidget *window, GtkMessageType type, char *fmt, ...)
+void gtk_message(GtkWidget *parent, GtkWidget **dialog, GtkMessageType type,
+                 char *fmt, ...)
 {
+    GtkWidget *d = NULL;
     va_list args;
-    GtkWidget *dialog;
     char msgbuf[1024];
     int rc;
 
     va_start(args, fmt);
     rc = vsnprintf(msgbuf, sizeof(msgbuf), fmt, args);
     va_end(args);
-
     if (debug)
 	fprintf(stderr, "%s: %s", gtk_msg_type_name[type], msgbuf);
-    dialog = gtk_message_dialog_new(GTK_WINDOW(window),
-				    GTK_DIALOG_DESTROY_WITH_PARENT,
-				    type, GTK_BUTTONS_CLOSE,
-				    "%s", gtk_msg_type_name[type]);
-    gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
-                                             "%s", msgbuf);
-    g_signal_connect_swapped(dialog, "response",
-			     G_CALLBACK (gtk_widget_destroy),
-			     dialog);
-    gtk_widget_show_all(dialog);
-    return rc;
+
+    if (dialog == NULL) {
+        dialog = &d;
+    }
+    if (*dialog == NULL) {
+        *dialog = gtk_message_dialog_new(GTK_WINDOW(parent),
+                                         GTK_DIALOG_DESTROY_WITH_PARENT,
+                                         type, GTK_BUTTONS_CLOSE,
+                                         "%s", gtk_msg_type_name[type]);
+        if (dialog != NULL) {
+            g_signal_connect_swapped(*dialog, "response",
+                                     G_CALLBACK (gtk_widget_hide_on_delete),
+                                     *dialog);
+        } else {
+            g_signal_connect_swapped(*dialog, "response",
+                                     G_CALLBACK (gtk_widget_destroy),
+                                     *dialog);
+        }
+    }
+
+    if (gtk_widget_get_visible(*dialog)) {
+        char *text;
+        g_object_get(G_OBJECT(*dialog), "secondary-text", &text, NULL);
+        gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(*dialog),
+                                                 "%s%s", text, msgbuf);
+    } else {
+        gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(*dialog),
+                                                 "%s", msgbuf);
+        gtk_widget_show_all(*dialog);
+    }
 }
 
 static int gtk_getstring(GtkWidget *window, char *title, char *message,
