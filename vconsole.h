@@ -105,6 +105,7 @@ struct vconsole_domain {
     virStreamPtr              stream;
     virDomainInfo             info;
     gboolean                  saved;
+    gboolean                  unpause;
 
     struct timeval            ts;
     struct timeval            last_ts;

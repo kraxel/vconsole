@@ -359,7 +359,8 @@ void domain_start(struct vconsole_domain *dom)
     domain_update_info(dom, d);
     switch (dom->info.state) {
     case VIR_DOMAIN_SHUTOFF:
-        virDomainCreate(d);
+        virDomainCreateWithFlags(d, VIR_DOMAIN_START_PAUSED);
+        dom->unpause = TRUE;
         break;
     case VIR_DOMAIN_PAUSED:
         virDomainResume(d);
@@ -543,6 +544,11 @@ void domain_update(struct vconsole_connect *conn,
 
     /* update tree store cols */
     domain_update_tree_store(dom, &guest);
+
+    if (dom->unpause && dom->info.state == VIR_DOMAIN_PAUSED) {
+        virDomainResume(d);
+        dom->unpause = FALSE;
+    }
 }
 
 void domain_update_all(struct vconsole_window *win)
