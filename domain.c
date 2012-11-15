@@ -355,12 +355,16 @@ static void domain_update_tree_store(struct vconsole_domain *dom,
 void domain_start(struct vconsole_domain *dom)
 {
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
+    uint32_t flags = 0;
 
     domain_update_info(dom, d);
     switch (dom->info.state) {
     case VIR_DOMAIN_SHUTOFF:
-        virDomainCreateWithFlags(d, VIR_DOMAIN_START_PAUSED);
-        dom->unpause = TRUE;
+        if (dom->vte) {
+            flags |= VIR_DOMAIN_START_PAUSED;
+            dom->unpause = TRUE;
+        }
+        virDomainCreateWithFlags(d, flags);
         break;
     case VIR_DOMAIN_PAUSED:
         virDomainResume(d);
