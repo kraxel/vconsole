@@ -307,7 +307,9 @@ static void menu_cb_vm_gfx(GtkAction *action, void *data)
         return;
     } else {
         /* child */
-        execlp("virt-viewer", "virt-viewer", "-w", "-c", uri, dom->uuid, NULL);
+        execlp("virt-viewer", "virt-viewer",
+               "--direct", /* tunneling doesn't work well */
+               "-w", "-c", uri, dom->uuid, NULL);
         perror("execlp");
         exit(1);
     }
