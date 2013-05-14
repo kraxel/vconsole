@@ -291,15 +291,27 @@ static struct vconsole_domain *find_guest(struct vconsole_window *win)
     return dom;
 }
 
-static void menu_cb_vm_gfx(GtkAction *action, void *data)
+static void run_virt_viewer(struct vconsole_domain *dom,
+                            bool direct,
+                            bool reconnect)
 {
-    struct vconsole_window *win = data;
-    struct vconsole_domain *dom = find_guest(win);
+    char *argv[32];
+    int argc = 0;
     char *uri;
 
-    if (!dom)
-        return;
     uri = virConnectGetURI(dom->conn->ptr);
+
+    argv[argc++] = "virt-viewer";
+    argv[argc++] = "--wait";
+    if (direct)
+        argv[argc++] = "--direct";
+    if (reconnect)
+        argv[argc++] = "--reconnect";
+    argv[argc++] = "-c";
+    argv[argc++] = uri;
+    argv[argc++] = dom->uuid;
+    argv[argc++] = NULL;
+    assert(argc < sizeof(argv)/sizeof(argv[0]));
 
     if (fork() <= 0) {
         /* parent */
@@ -307,12 +319,19 @@ static void menu_cb_vm_gfx(GtkAction *action, void *data)
         return;
     } else {
         /* child */
-        execlp("virt-viewer", "virt-viewer",
-               "--direct", /* tunneling doesn't work well */
-               "-w", "-c", uri, dom->uuid, NULL);
-        perror("execlp");
+        execvp("virt-viewer", argv);
+        perror("execvp");
         exit(1);
     }
+}
+
+static void menu_cb_vm_gfx(GtkAction *action, void *data)
+{
+    struct vconsole_window *win = data;
+    struct vconsole_domain *dom = find_guest(win);
+
+    if (dom)
+        run_virt_viewer(dom, true, true);
 }
 
 static void menu_cb_vm_run(GtkAction *action, void *data)
@@ -322,6 +341,17 @@ static void menu_cb_vm_run(GtkAction *action, void *data)
 
     if (dom)
         domain_start(dom);
+}
+
+static void menu_cb_vm_run_gfx(GtkAction *action, void *data)
+{
+    struct vconsole_window *win = data;
+    struct vconsole_domain *dom = find_guest(win);
+
+    if (dom) {
+        run_virt_viewer(dom, true, false);
+        domain_start(dom);
+    }
 }
 
 static void menu_cb_vm_pause(GtkAction *action, void *data)
@@ -497,6 +527,11 @@ static const GtkActionEntry entries[] = {
         .tooltip     = "Run guest",
 	.callback    = G_CALLBACK(menu_cb_vm_run),
     },{
+	.name        = "GuestRunGfx",
+	.label       = "Run with grapics",
+        .tooltip     = "Run guest and show graphic console",
+	.callback    = G_CALLBACK(menu_cb_vm_run_gfx),
+    },{
 	.name        = "GuestPause",
 	.stock_id    = GTK_STOCK_MEDIA_PAUSE,
 	.label       = "Pause",
@@ -606,6 +641,8 @@ static char ui_xml[] =
 "    <toolitem action='GuestRun'/>\n"
 "    <toolitem action='GuestPause'/>\n"
 "    <toolitem action='GuestSave'/>\n"
+"    <separator/>\n"
+"    <toolitem action='GuestRunGfx'/>\n"
 "  </toolbar>\n"
 "</ui>\n";
 
