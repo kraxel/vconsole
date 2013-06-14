@@ -25,6 +25,7 @@ enum vconsole_cols {
 
     /* hosts only */
     CPTR_COL,  // vconsole_connect
+    TYPE_COL,
     URI_COL,
 
     /* guests only */
@@ -88,6 +89,9 @@ struct vconsole_connect {
     GtkWidget                 *warn;
     GtkWidget                 *err;
     GtkWidget                 *info;
+    gboolean                  cap_migration;
+    gboolean                  cap_start_paused;
+    gboolean                  cap_console_force;
 };
 
 struct vconsole_connect *connect_init(struct vconsole_window *win,

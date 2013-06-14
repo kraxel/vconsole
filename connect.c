@@ -119,7 +119,8 @@ struct vconsole_connect *connect_init(struct vconsole_window *win,
 {
     struct vconsole_connect *conn;
     GtkTreeIter iter;
-    char *name;
+    const char *type;
+    char *name, *key, *caps;
 
     conn = g_new0(struct vconsole_connect, 1);
     conn->ptr = virConnectOpen(uri);
@@ -130,7 +131,10 @@ struct vconsole_connect *connect_init(struct vconsole_window *win,
         return NULL;
     }
     conn->win = win;
+    type = virConnectGetType(conn->ptr);
     name = virConnectGetHostname(conn->ptr);
+    caps = virConnectGetCapabilities(conn->ptr);
+    key = g_strdup_printf("%s:%s", type, name);
     virConnectDomainEventRegister(conn->ptr, connect_domain_event,
                                   conn, NULL);
     virConnSetErrorFunc(conn->ptr, conn, connect_error);
@@ -143,6 +147,7 @@ struct vconsole_connect *connect_init(struct vconsole_window *win,
     gtk_tree_store_set(win->store, &iter,
                        CPTR_COL,       conn,
                        NAME_COL,       name,
+                       TYPE_COL,       type,
                        URI_COL,        uri,
                        FOREGROUND_COL, "black",
                        WEIGHT_COL,     PANGO_WEIGHT_NORMAL,
@@ -151,9 +156,22 @@ struct vconsole_connect *connect_init(struct vconsole_window *win,
     if (debug)
         fprintf(stderr, "%s: %s\n", __func__, uri);
     g_key_file_set_string(config, "hosts", name, uri);
+    g_key_file_set_string(config, "connections", key, uri);
     config_write();
     connect_list(conn);
 
+    if (strstr(caps, "<migration_features>")) {
+        if (debug)
+            fprintf(stderr, "%s: migration supported\n", __func__);
+        conn->cap_migration = TRUE;
+    }
+    if (strcmp(type, "QEMU") == 0) {
+        conn->cap_start_paused = TRUE;
+        conn->cap_console_force = TRUE;
+    }
+
+    free(key);
+    free(caps);
     free(name);
 
     return conn;

@@ -167,7 +167,7 @@ static void menu_cb_connect_menu(GtkAction *action, gpointer userdata)
 	return;
     if (debug)
         fprintf(stderr, "%s: %s\n", __func__, name);
-    uri = g_key_file_get_string(config, "hosts", name, &err);
+    uri = g_key_file_get_string(config, "connections", name, &err);
     if (uri) {
         connect_init(win, uri);
         g_free(uri);
@@ -528,8 +528,7 @@ static const GtkActionEntry entries[] = {
 	.callback    = G_CALLBACK(menu_cb_vm_run),
     },{
 	.name        = "GuestRunGfx",
-	.label       = "Run with grapics",
-        .tooltip     = "Run guest and show graphic console",
+	.label       = "Run and show grapics console",
 	.callback    = G_CALLBACK(menu_cb_vm_run_gfx),
     },{
 	.name        = "GuestPause",
@@ -556,11 +555,13 @@ static const GtkActionEntry entries[] = {
 	.callback    = G_CALLBACK(menu_cb_vm_shutdown),
     },{
 	.name        = "GuestReset",
+	.stock_id    = GTK_STOCK_REFRESH,
 	.label       = "Reset",
         .tooltip     = "Reset guest",
 	.callback    = G_CALLBACK(menu_cb_vm_reset),
     },{
 	.name        = "GuestKill",
+	.stock_id    = GTK_STOCK_MEDIA_STOP,
 	.label       = "Destroy",
         .tooltip     = "Destriy guest",
 	.callback    = G_CALLBACK(menu_cb_vm_kill),
@@ -642,6 +643,9 @@ static char ui_xml[] =
 "    <toolitem action='GuestPause'/>\n"
 "    <toolitem action='GuestSave'/>\n"
 "    <separator/>\n"
+"    <toolitem action='GuestReset'/>\n"
+"    <toolitem action='GuestKill'/>\n"
+"    <separator/>\n"
 "    <toolitem action='GuestRunGfx'/>\n"
 "  </toolbar>\n"
 "</ui>\n";
@@ -709,7 +713,7 @@ static void vconsole_build_recent(struct vconsole_window *win)
     win->r_ag = gtk_action_group_new("RecentActions");
 
     /* add entries */
-    keys = g_key_file_get_keys(config, "hosts", &nkeys, &err);
+    keys = g_key_file_get_keys(config, "connections", &nkeys, &err);
     for (i = 0; i < nkeys; i++) {
         action = g_strdup_printf("ConnectMenu_%s", keys[i]);
         memset(&entry, 0, sizeof(entry));
@@ -884,6 +888,7 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
     win->store = gtk_tree_store_new(N_COLUMNS,
                                     G_TYPE_STRING,   // NAME_COL
                                     G_TYPE_POINTER,  // CPTR_COL
+                                    G_TYPE_STRING,   // TYPE_COL
                                     G_TYPE_STRING,   // URI_COL
                                     G_TYPE_POINTER,  // DPTR_COL
                                     G_TYPE_INT,      // ID_COL

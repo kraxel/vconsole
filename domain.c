@@ -249,6 +249,7 @@ static void domain_user_input(VteTerminal *vte, gchar *buf, guint len,
 
 static void domain_connect(struct vconsole_domain *dom, virDomainPtr d)
 {
+    int flags = 0;
     int rc;
 
     if (dom->stream)
@@ -256,8 +257,9 @@ static void domain_connect(struct vconsole_domain *dom, virDomainPtr d)
 
     dom->stream = virStreamNew(dom->conn->ptr,
                                VIR_STREAM_NONBLOCK);
-    rc = virDomainOpenConsole(d, NULL, dom->stream,
-                              VIR_DOMAIN_CONSOLE_FORCE);
+    if (dom->conn->cap_console_force)
+        flags |= VIR_DOMAIN_CONSOLE_FORCE;
+    rc = virDomainOpenConsole(d, NULL, dom->stream, flags);
     if (rc < 0) {
         if (debug)
             fprintf(stderr, "%s: %s failed\n", __func__, dom->name);
@@ -281,13 +283,14 @@ static int domain_update_info(struct vconsole_domain *dom, virDomainPtr d)
     struct timeval ts;
     const char *name;
     int id, rc;
-    gboolean saved;
+    gboolean saved = FALSE;
     virDomainInfo info;
 
     gettimeofday(&ts, NULL);
     name = virDomainGetName(d);
     id = virDomainGetID(d);
-    saved = virDomainHasManagedSaveImage(d, 0);
+    if (dom->conn->cap_migration)
+        saved = virDomainHasManagedSaveImage(d, 0);
     rc = virDomainGetInfo(d, &info);
     if (rc != 0) {
         return rc;
@@ -360,7 +363,7 @@ void domain_start(struct vconsole_domain *dom)
     domain_update_info(dom, d);
     switch (dom->info.state) {
     case VIR_DOMAIN_SHUTOFF:
-        if (dom->vte) {
+        if (dom->vte && dom->conn->cap_start_paused) {
             flags |= VIR_DOMAIN_START_PAUSED;
             dom->unpause = TRUE;
         }
