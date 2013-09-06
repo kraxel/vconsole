@@ -57,10 +57,9 @@ void gtk_message(GtkWidget *parent, GtkWidget **dialog, GtkMessageType type,
     GtkWidget *d = NULL;
     va_list args;
     char msgbuf[1024];
-    int rc;
 
     va_start(args, fmt);
-    rc = vsnprintf(msgbuf, sizeof(msgbuf), fmt, args);
+    vsnprintf(msgbuf, sizeof(msgbuf), fmt, args);
     va_end(args);
     if (debug)
 	fprintf(stderr, "%s: %s", gtk_msg_type_name[type], msgbuf);
@@ -563,7 +562,7 @@ static const GtkActionEntry entries[] = {
 	.name        = "GuestKill",
 	.stock_id    = GTK_STOCK_MEDIA_STOP,
 	.label       = "Destroy",
-        .tooltip     = "Destriy guest",
+        .tooltip     = "Destroy guest",
 	.callback    = G_CALLBACK(menu_cb_vm_kill),
 
     },{
@@ -753,7 +752,7 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     win = g_new0(struct vconsole_window, 1);
     win->toplevel = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(win->toplevel), APPNAME);
-    gtk_window_set_default_size(GTK_WINDOW(win->toplevel), 640, 400);
+    gtk_window_set_default_size(GTK_WINDOW(win->toplevel), 800, 600);
     g_signal_connect(G_OBJECT(win->toplevel), "destroy",
 		     G_CALLBACK(destroy), win);
     g_signal_connect(G_OBJECT(win->toplevel), "window-state-event",
