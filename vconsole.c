@@ -291,7 +291,6 @@ static struct vconsole_domain *find_guest(struct vconsole_window *win)
 }
 
 static void run_virt_viewer(struct vconsole_domain *dom,
-                            bool direct,
                             bool reconnect)
 {
     char *argv[32];
@@ -302,8 +301,9 @@ static void run_virt_viewer(struct vconsole_domain *dom,
 
     argv[argc++] = "virt-viewer";
     argv[argc++] = "--wait";
-    if (direct)
-        argv[argc++] = "--direct";
+#if 0
+    argv[argc++] = "--direct";
+#endif
     if (reconnect)
         argv[argc++] = "--reconnect";
     argv[argc++] = "-c";
@@ -330,7 +330,7 @@ static void menu_cb_vm_gfx(GtkAction *action, void *data)
     struct vconsole_domain *dom = find_guest(win);
 
     if (dom)
-        run_virt_viewer(dom, true, true);
+        run_virt_viewer(dom, true);
 }
 
 static void menu_cb_vm_run(GtkAction *action, void *data)
@@ -348,7 +348,7 @@ static void menu_cb_vm_run_gfx(GtkAction *action, void *data)
     struct vconsole_domain *dom = find_guest(win);
 
     if (dom) {
-        run_virt_viewer(dom, true, false);
+        run_virt_viewer(dom, false);
         domain_start(dom);
     }
 }
