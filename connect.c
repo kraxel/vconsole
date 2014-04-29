@@ -27,6 +27,13 @@ static void connect_error(void *opaque, virErrorPtr err)
         break;
     }
 
+    switch (err->code) {
+    case VIR_ERR_NO_DOMAIN:  /* domain is gone, ignore */
+        return;
+    default:
+        break;
+    }
+
     switch (err->level) {
     case VIR_ERR_WARNING:
         type = GTK_MESSAGE_WARNING;
