@@ -527,7 +527,9 @@ static const GtkActionEntry entries[] = {
 	.callback    = G_CALLBACK(menu_cb_vm_run),
     },{
 	.name        = "GuestRunGfx",
-	.label       = "Run and show grapics console",
+	.stock_id    = "window-new",
+	.label       = "Run with graphic console",
+	.tooltip     = "Run guest and show graphic console",
 	.callback    = G_CALLBACK(menu_cb_vm_run_gfx),
     },{
 	.name        = "GuestPause",
