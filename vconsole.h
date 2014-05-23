@@ -106,7 +106,7 @@ struct vconsole_domain {
     int                       id;
     const char                *name;
 
-    GtkWidget                 *vbox, *vte, *status;
+    GtkWidget                 *window, *vbox, *vte, *status;
     virStreamPtr              stream;
     virDomainInfo             info;
     gboolean                  saved;
@@ -120,6 +120,8 @@ struct vconsole_domain {
     FILE                      *logfp;
     char                      *logname;
 };
+
+void domain_untabify(struct vconsole_domain *dom);
 
 void domain_start(struct vconsole_domain *dom);
 void domain_pause(struct vconsole_domain *dom);

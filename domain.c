@@ -355,6 +355,60 @@ static void domain_update_tree_store(struct vconsole_domain *dom,
 
 /* ------------------------------------------------------------------ */
 
+static void domain_vte_geometry_hints(struct vconsole_domain *dom, GtkWindow *win)
+{
+    GdkWindowHints mask = 0;
+    GdkGeometry geo = {};
+    GtkBorder *ib;
+
+    geo.width_inc  = vte_terminal_get_char_width(VTE_TERMINAL(dom->vte));
+    geo.height_inc = vte_terminal_get_char_height(VTE_TERMINAL(dom->vte));
+    mask |= GDK_HINT_RESIZE_INC;
+    geo.base_width  = geo.width_inc;
+    geo.base_height = geo.height_inc;
+    mask |= GDK_HINT_BASE_SIZE;
+    geo.min_width  = geo.width_inc * 80;
+    geo.min_height = geo.height_inc * 25;
+    mask |= GDK_HINT_MIN_SIZE;
+    gtk_widget_style_get(dom->vte, "inner-border", &ib, NULL);
+    geo.base_width  += ib->left + ib->right;
+    geo.base_height += ib->top + ib->bottom;
+    geo.min_width   += ib->left + ib->right;
+    geo.min_height  += ib->top + ib->bottom;
+
+    gtk_window_set_geometry_hints(win, dom->vte, &geo, mask);
+}
+
+
+static gboolean domain_window_close(GtkWidget *widget, GdkEvent *event,
+                                    void *opaque)
+{
+    struct vconsole_domain *dom = opaque;
+    struct vconsole_window *win = dom->conn->win;
+
+    gtk_widget_reparent(dom->vbox, win->notebook);
+    gtk_notebook_set_tab_label_text(GTK_NOTEBOOK(win->notebook),
+                                    dom->vbox, dom->name);
+    gtk_widget_destroy(dom->window);
+    dom->window = NULL;
+    return TRUE;
+}
+
+void domain_untabify(struct vconsole_domain *dom)
+{
+    if (dom->window)
+        return;
+
+    dom->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_widget_reparent(dom->vbox, dom->window);
+    gtk_window_set_title(GTK_WINDOW(dom->window), dom->name);
+    domain_vte_geometry_hints(dom, GTK_WINDOW(dom->window));
+    g_signal_connect(dom->window, "delete-event",
+                     G_CALLBACK(domain_window_close), dom);
+
+    gtk_widget_show_all(dom->window);
+}
+
 void domain_start(struct vconsole_domain *dom)
 {
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
@@ -661,6 +715,7 @@ void domain_activate(struct vconsole_domain *dom)
         gtk_widget_show_all(dom->vbox);
         gtk_notebook_set_current_page(GTK_NOTEBOOK(win->notebook), page);
         domain_configure_vte(dom);
+        domain_vte_geometry_hints(dom, GTK_WINDOW(win->toplevel));
 
         domain_update_info(dom, d);
         if (dom->info.state == VIR_DOMAIN_RUNNING)

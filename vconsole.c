@@ -324,6 +324,15 @@ static void run_virt_viewer(struct vconsole_domain *dom,
     }
 }
 
+static void menu_cb_untabify(GtkToggleAction *action, gpointer userdata)
+{
+    struct vconsole_window *win = userdata;
+    struct vconsole_domain *dom = find_guest(win);
+
+    if (dom)
+        domain_untabify(dom);
+}
+
 static void menu_cb_vm_gfx(GtkAction *action, void *data)
 {
     struct vconsole_window *win = data;
@@ -514,6 +523,10 @@ static const GtkActionEntry entries[] = {
 	.label       = "Terminal _background ...",
 	.callback    = G_CALLBACK(menu_cb_config_bg),
     },{
+	.name        = "Untabify",
+	.label       = "_Detach Tab",
+	.callback    = G_CALLBACK(menu_cb_untabify),
+    },{
 
         /* --- guest menu --- */
 	.name        = "GuestGfx",
@@ -617,6 +630,8 @@ static char ui_xml[] =
 "      <menuitem action='TerminalBlink'/>\n"
 "      <separator/>\n"
 "      <menuitem action='FullScreen'/>\n"
+"      <separator/>\n"
+"      <menuitem action='Untabify'/>\n"
 "    </menu>\n"
 "    <menu action='GuestMenu'>\n"
 "      <menuitem action='GuestLogging'/>\n"
