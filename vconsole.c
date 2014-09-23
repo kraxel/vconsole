@@ -324,6 +324,36 @@ static void run_virt_viewer(struct vconsole_domain *dom,
     }
 }
 
+static void run_virsh_edit(struct vconsole_domain *dom)
+{
+    char *argv[32];
+    int argc = 0;
+    char *uri;
+
+    uri = virConnectGetURI(dom->conn->ptr);
+
+    argv[argc++] = "xterm";
+    argv[argc++] = "-e";
+    argv[argc++] = "virsh";
+    argv[argc++] = "-c";
+    argv[argc++] = uri;
+    argv[argc++] = "edit";
+    argv[argc++] = dom->uuid;
+    argv[argc++] = NULL;
+    assert(argc < sizeof(argv)/sizeof(argv[0]));
+
+    if (fork() <= 0) {
+        /* parent */
+        free(uri);
+        return;
+    } else {
+        /* child */
+        execvp("xterm", argv);
+        perror("execvp");
+        exit(1);
+    }
+}
+
 static void menu_cb_untabify(GtkToggleAction *action, gpointer userdata)
 {
     struct vconsole_window *win = userdata;
@@ -331,6 +361,15 @@ static void menu_cb_untabify(GtkToggleAction *action, gpointer userdata)
 
     if (dom)
         domain_untabify(dom);
+}
+
+static void menu_cb_vm_edit(GtkAction *action, void *data)
+{
+    struct vconsole_window *win = data;
+    struct vconsole_domain *dom = find_guest(win);
+
+    if (dom)
+        run_virsh_edit(dom);
 }
 
 static void menu_cb_vm_gfx(GtkAction *action, void *data)
@@ -529,6 +568,10 @@ static const GtkActionEntry entries[] = {
     },{
 
         /* --- guest menu --- */
+	.name        = "GuestEdit",
+	.label       = "Change guest configuration",
+	.callback    = G_CALLBACK(menu_cb_vm_edit),
+    },{
 	.name        = "GuestGfx",
 	.label       = "Show graphic console",
 	.callback    = G_CALLBACK(menu_cb_vm_gfx),
@@ -636,6 +679,8 @@ static char ui_xml[] =
 "    <menu action='GuestMenu'>\n"
 "      <menuitem action='GuestLogging'/>\n"
 "      <separator/>\n"
+"      <menuitem action='GuestEdit'/>\n"
+"      <separator/>\n"
 "      <menuitem action='GuestGfx'/>\n"
 "      <separator/>\n"
 "      <menuitem action='GuestRun'/>\n"
@@ -653,8 +698,6 @@ static char ui_xml[] =
 "    </menu>\n"
 "  </menubar>\n"
 "  <toolbar action='ToolBar'>"
-"    <toolitem action='CloseTab'/>\n"
-"    <separator/>\n"
 "    <toolitem action='GuestRun'/>\n"
 "    <toolitem action='GuestPause'/>\n"
 "    <toolitem action='GuestSave'/>\n"
@@ -794,6 +837,10 @@ static struct vconsole_window *vconsole_toplevel_create(void)
 
     /* main area */
     win->notebook = gtk_notebook_new();
+    gtk_notebook_set_tab_pos(GTK_NOTEBOOK(win->notebook), GTK_POS_TOP);
+    gtk_notebook_set_show_tabs(GTK_NOTEBOOK(win->notebook), TRUE);
+    gtk_notebook_set_scrollable(GTK_NOTEBOOK(win->notebook), TRUE);
+    gtk_notebook_popup_enable(GTK_NOTEBOOK(win->notebook));
 
     /* Make a vbox and put stuff in */
     vbox = gtk_vbox_new(FALSE, 1);
