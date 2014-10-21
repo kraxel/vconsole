@@ -379,7 +379,6 @@ static void domain_vte_geometry_hints(struct vconsole_domain *dom, GtkWindow *wi
     gtk_window_set_geometry_hints(win, dom->vte, &geo, mask);
 }
 
-
 static gboolean domain_window_close(GtkWidget *widget, GdkEvent *event,
                                     void *opaque)
 {
@@ -686,11 +685,31 @@ static void domain_close_tab_btn(GtkWidget *btn, gpointer opaque)
     domain_close_tab(dom, d);
 }
 
+static GtkWidget *tab_label_with_close_button(const char *labeltext,
+                                              GCallback callback,
+                                              gpointer opaque)
+{
+    GtkWidget *label, *lclose, *limg, *lhbox;
+
+    label = gtk_label_new(labeltext);
+    lclose = gtk_button_new();
+    g_signal_connect(lclose, "clicked", callback, opaque);
+    limg = gtk_image_new_from_stock(GTK_STOCK_CLOSE, GTK_ICON_SIZE_MENU);
+    gtk_button_set_image(GTK_BUTTON(lclose), limg);
+    gtk_button_set_always_show_image(GTK_BUTTON(lclose), TRUE);
+    lhbox = gtk_hbox_new(FALSE, 1);
+    gtk_box_pack_start(GTK_BOX(lhbox), label, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(lhbox), lclose, FALSE, TRUE, 0);
+    gtk_widget_show_all(lhbox);
+
+    return lhbox;
+}
+
 void domain_activate(struct vconsole_domain *dom)
 {
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
     struct vconsole_window *win = dom->conn->win;
-    GtkWidget *label, *lclose, *limg, *lhbox, *fstatus;
+    GtkWidget *lhbox, *fstatus;
     gint page;
 
     if (dom->vte) {
@@ -717,18 +736,9 @@ void domain_activate(struct vconsole_domain *dom)
         gtk_box_pack_end(GTK_BOX(dom->vbox), fstatus, FALSE, TRUE, 0);
         gtk_container_add(GTK_CONTAINER(fstatus), dom->status);
 
-        label = gtk_label_new(dom->name);
-        lclose = gtk_button_new();
-        g_signal_connect(lclose, "clicked",
-                         G_CALLBACK(domain_close_tab_btn), dom);
-        limg = gtk_image_new_from_stock(GTK_STOCK_CLOSE, GTK_ICON_SIZE_MENU);
-        gtk_button_set_image(GTK_BUTTON(lclose), limg);
-        gtk_button_set_always_show_image(GTK_BUTTON(lclose), TRUE);
-        lhbox = gtk_hbox_new(FALSE, 1);
-        gtk_box_pack_start(GTK_BOX(lhbox), label, TRUE, TRUE, 0);
-        gtk_box_pack_start(GTK_BOX(lhbox), lclose, FALSE, TRUE, 0);
-        gtk_widget_show_all(lhbox);
-
+        lhbox = tab_label_with_close_button(dom->name,
+                                            G_CALLBACK(domain_close_tab_btn),
+                                            dom);
         page = gtk_notebook_insert_page(GTK_NOTEBOOK(win->notebook),
                                         dom->vbox, lhbox, -1);
         gtk_notebook_set_tab_reorderable(GTK_NOTEBOOK(win->notebook),
