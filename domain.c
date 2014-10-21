@@ -1,5 +1,10 @@
 #include "vconsole.h"
 
+static GtkWidget *tab_label_with_close_button(const char *labeltext,
+                                              GCallback callback,
+                                              gpointer opaque);
+static void domain_close_tab_btn(GtkWidget *btn, gpointer opaque);
+
 /* ------------------------------------------------------------------ */
 
 static const char *state_name[] = {
@@ -384,10 +389,14 @@ static gboolean domain_window_close(GtkWidget *widget, GdkEvent *event,
 {
     struct vconsole_domain *dom = opaque;
     struct vconsole_window *win = dom->conn->win;
+    GtkWidget *lhbox;
 
     gtk_widget_reparent(dom->vbox, win->notebook);
-    gtk_notebook_set_tab_label_text(GTK_NOTEBOOK(win->notebook),
-                                    dom->vbox, dom->name);
+    lhbox = tab_label_with_close_button(dom->name,
+                                        G_CALLBACK(domain_close_tab_btn),
+                                        dom);
+    gtk_notebook_set_tab_label(GTK_NOTEBOOK(win->notebook),
+                               dom->vbox, lhbox);
     gtk_widget_destroy(dom->window);
     dom->window = NULL;
     return TRUE;
