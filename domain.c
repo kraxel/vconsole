@@ -329,6 +329,7 @@ static void domain_update_tree_store(struct vconsole_domain *dom,
     const char *foreground;
     char load[16], mem[16];
     PangoWeight weight;
+    int avgload;
 
     switch (dom->info.state) {
     case VIR_DOMAIN_RUNNING:
@@ -342,6 +343,7 @@ static void domain_update_tree_store(struct vconsole_domain *dom,
     }
     snprintf(load, sizeof(load), "%d%%", dom->load);
     snprintf(mem, sizeof(mem), "%ld M", dom->info.memory / 1024);
+    avgload = dom->info.nrVirtCpu ? dom->load / dom->info.nrVirtCpu : 0;
 
     gtk_tree_store_set(dom->conn->win->store, guest,
                        NAME_COL,       dom->name,
@@ -351,7 +353,7 @@ static void domain_update_tree_store(struct vconsole_domain *dom,
                        STATE_COL,      domain_state_name(dom),
                        NR_CPUS_COL,    dom->info.nrVirtCpu,
                        LOAD_STR_COL,   load,
-                       LOAD_INT_COL,   MIN(dom->load / dom->info.nrVirtCpu, 100),
+                       LOAD_INT_COL,   MIN(avgload, 100),
                        MEMORY_COL,     mem,
                        FOREGROUND_COL, foreground,
                        WEIGHT_COL,     weight,
