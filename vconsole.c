@@ -988,6 +988,7 @@ static void vconsole_tab_list_create(struct vconsole_window *win)
     /* id */
     renderer = gtk_cell_renderer_text_new();
     g_object_set(renderer, "xalign", 0.5, NULL);
+    g_object_set(renderer, "height", 1, NULL);
     column = gtk_tree_view_column_new_with_attributes("ID",
                                                       renderer,
                                                       "text", ID_COL,
