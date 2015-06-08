@@ -4,12 +4,13 @@ include mk/Variables.mk
 
 # add our flags + libs
 CFLAGS	+= -DVERSION='"$(VERSION)"' -DLIB='"$(LIB)"'
+CFLAGS	+= -Wno-pointer-sign
 
 # valgrind options
 VFLAGS	:= --leak-check=full --show-possibly-lost=no 
 
 # build
-TARGETS		:= vconsole
+TARGETS		:= vconsole vpublish
 
 # default target
 all: build
@@ -33,18 +34,20 @@ endef
 ifeq ($(HAVE_GTK3)-$(HAVE_VTE3),yes-yes)
 CFLAGS += -Wno-deprecated-declarations
 wanted := $(HAVE_GLIB)-$(HAVE_GTHREAD)-$(HAVE_GTK3)-$(HAVE_VTE3)-$(HAVE_LIBVIRT)
-pkglst := glib-2.0 gthread-2.0 gtk+-3.0 vte-2.90 libvirt
+vconsole : pkglst := glib-2.0 gthread-2.0 gtk+-3.0 vte-2.90 libvirt
+vpublish : pkglst := glib-2.0 gthread-2.0 libvirt libxml-2.0 avahi-client avahi-glib
 else
 CFLAGS += -DGTK_DISABLE_SINGLE_INCLUDES
 CFLAGS += -DGTK_DISABLE_DEPRECATED
 CFLAGS += -DGSEAL_ENABLE
 wanted := $(HAVE_GLIB)-$(HAVE_GTHREAD)-$(HAVE_GTK2)-$(HAVE_VTE2)-$(HAVE_LIBVIRT)
-pkglst := glib-2.0 gthread-2.0 gtk+-2.0 vte libvirt
+vconsole : pkglst := glib-2.0 gthread-2.0 gtk+-2.0 vte libvirt
+vpublish : pkglst := glib-2.0 gthread-2.0 libvirt libxml-2.0 avahi-client avahi-glib
 endif
 
 CFLAGS += -Wno-strict-prototypes
-CFLAGS += $(shell test "$(pkglst)" != "" && pkg-config --cflags $(pkglst))
-LDLIBS += $(shell test "$(pkglst)" != "" && pkg-config --libs   $(pkglst))
+CFLAGS += $(shell pkg-config --cflags $(pkglst))
+LDLIBS += $(shell pkg-config --libs   $(pkglst))
 
 # desktop files
 DESKTOP := $(wildcard $(patsubst %,%.desktop,$(TARGETS)))
@@ -81,6 +84,7 @@ realclean distclean: clean
 #############################################
 
 vconsole: vconsole.o connect.o domain.o libvirt-glib-event.o
+vpublish: vpublish.o mdns-publish.o libvirt-glib-event.o
 
 include mk/Compile.mk
 include mk/Maintainer.mk
