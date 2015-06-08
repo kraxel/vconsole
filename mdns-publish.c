@@ -24,7 +24,7 @@ struct mdns_pub {
     int                    have_tty;
     int                    have_syslog;
     int                    debug;
-    
+
     AvahiThreadedPoll      *thread_poll;
     AvahiClient            *client;
 
@@ -76,7 +76,7 @@ static void entry_group_callback(AvahiEntryGroup *g,
 
     mdns_log_printf(entry->mdns, LOG_DEBUG, "%s: %s: state %d [%s]\n", __FUNCTION__,
 		    entry->name, state, group_state_name[state]);
-    
+
     switch (state) {
     case AVAHI_ENTRY_GROUP_COLLISION:
 	n = avahi_alternative_service_name(entry->name);
@@ -361,7 +361,8 @@ int mdns_log_printf(struct mdns_pub *mdns, int priority,
     rc = vsnprintf(msgbuf, sizeof(msgbuf), fmt, args);
     va_end(args);
 
-    if (!mdns || mdns->have_tty)
+    if (!mdns || (mdns->have_tty && (mdns->debug ||
+                                     priority != LOG_DEBUG)))
 	fprintf(stderr, "%s: %s", mdns_pub_appname, msgbuf);
     if (mdns && mdns->have_syslog)
 	syslog(priority, "%s", msgbuf);
