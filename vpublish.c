@@ -20,6 +20,7 @@
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
 
+#include "list.h"
 #include "mdns-publish.h"
 #include "libvirt-glib-event.h"
 
@@ -27,17 +28,18 @@
 
 /* ------------------------------------------------------------------ */
 
-int debug = 1;
+int debug = 0;
 
 /* ------------------------------------------------------------------ */
 
 typedef struct display display;
 struct display {
+    char uuid[VIR_UUID_STRING_BUFLEN];
     struct mdns_pub_entry *entry;
-    display *next;
+    struct list_head next;
 };
 
-static display *domains;
+static struct list_head domains = LIST_HEAD_INIT(domains);
 static struct mdns_pub *mdns;
 
 static void display_add_vnc(virDomainPtr d, xmlChar *port)
@@ -45,10 +47,27 @@ static void display_add_vnc(virDomainPtr d, xmlChar *port)
     const char *name = virDomainGetName(d);
     display *dpy = g_new0(display, 1);
 
+    virDomainGetUUIDString(d, dpy->uuid);
     dpy->entry = mdns_pub_add(mdns, name, "_rfb._tcp", atoi(port), NULL);
 
-    dpy->next = domains;
-    domains = dpy;
+    list_add(&dpy->next, &domains);
+}
+
+static void display_del(virDomainPtr d)
+{
+    char uuid[VIR_UUID_STRING_BUFLEN];
+    struct list_head *item, *tmp;
+    display *dpy;
+
+    virDomainGetUUIDString(d, uuid);
+    list_for_each_safe(item, tmp, &domains) {
+	dpy = list_entry(item, display, next);
+        if (strcmp(dpy->uuid, uuid) != 0)
+            continue;
+        mdns_pub_del(dpy->entry);
+        list_del(&dpy->next);
+        g_free(dpy);
+    }
 }
 
 /* ------------------------------------------------------------------ */
@@ -62,13 +81,14 @@ static void domain_check(virConnectPtr c, virDomainPtr d)
     const char *name = virDomainGetName(d);
     xmlXPathContextPtr ctx;
     xmlXPathObjectPtr obj;
+    xmlChar *listen, *port;
     xmlNodePtr cur;
     xmlDocPtr xml;
     char *domain;
     int i;
 
     if (debug)
-        fprintf(stderr, "%s: %s [enter]\n", __func__, name);
+        fprintf(stderr, "%s: %s, checking ...\n", __func__, name);
 
     domain = virDomainGetXMLDesc(d, 0);
     if (!domain) {
@@ -88,8 +108,9 @@ static void domain_check(virConnectPtr c, virDomainPtr d)
 
     obj = xmlXPathEvalExpression(xpath_spice, ctx);
     if (obj && obj->nodesetval && obj->nodesetval->nodeNr) {
-        fprintf(stderr, "%s: %s, %d spice nodes\n", __func__, name,
-                obj->nodesetval->nodeNr);
+        if (debug)
+            fprintf(stderr, "%s: %s, %d spice nodes\n", __func__, name,
+                    obj->nodesetval->nodeNr);
         for (i = 0; i < obj->nodesetval->nodeNr; i++) {
             cur = obj->nodesetval->nodeTab[i];
             /* TODO */
@@ -99,23 +120,27 @@ static void domain_check(virConnectPtr c, virDomainPtr d)
 
     obj = xmlXPathEvalExpression(xpath_vnc, ctx);
     if (obj && obj->nodesetval && obj->nodesetval->nodeNr) {
-        fprintf(stderr, "%s: %s, %d vnc nodes\n", __func__, name,
-                obj->nodesetval->nodeNr);
+        if (debug)
+            fprintf(stderr, "%s: %s, %d vnc nodes\n", __func__, name,
+                    obj->nodesetval->nodeNr);
         for (i = 0; i < obj->nodesetval->nodeNr; i++) {
             cur = obj->nodesetval->nodeTab[i];
-            fprintf(stderr, "   %d: %s:%s\n", i + 1,
-                    xmlGetProp(cur, "listen"),
-                    xmlGetProp(cur, "port"));
-            display_add_vnc(d, xmlGetProp(cur, "port"));
+            listen = xmlGetProp(cur, "listen");
+            port = xmlGetProp(cur, "port");
+            if (strcmp(listen, "127.0.0.1") == 0) {
+                if (debug)
+                    fprintf(stderr, "   %d: skip (@localhost)\n", i + 1);
+                continue;
+            }
+            if (debug)
+                fprintf(stderr, "   %d: port %s\n", i + 1, port);
+            display_add_vnc(d, port);
         }
     }
     xmlXPathFreeObject(obj);
 
     xmlXPathFreeContext(ctx);
     xmlFreeDoc(xml);
-
-    if (debug)
-        fprintf(stderr, "%s: %s [done]\n", __func__, name);
     return;
 
 err_domain:
@@ -129,23 +154,42 @@ static void domain_update(virConnectPtr c, virDomainPtr d, virDomainEventType ev
 
     /* handle events */
     switch (event) {
-    case VIR_DOMAIN_EVENT_UNDEFINED:
-        if (debug)
-            fprintf(stderr, "%s: %s: undefined\n", __func__, name);
-        break;
+
+        /* publish */
     case VIR_DOMAIN_EVENT_STARTED:
         if (debug)
             fprintf(stderr, "%s: %s: started\n", __func__, name);
         domain_check(c, d);
         break;
+
+        /* unpublish */
     case VIR_DOMAIN_EVENT_STOPPED:
         if (debug)
             fprintf(stderr, "%s: %s: stopped\n", __func__, name);
+        display_del(d);
+        break;
+    case VIR_DOMAIN_EVENT_CRASHED:
+        if (debug)
+            fprintf(stderr, "%s: %s: crashed\n", __func__, name);
+        display_del(d);
+        break;
+
+        /* ignore */
+    case VIR_DOMAIN_EVENT_SUSPENDED:
+    case VIR_DOMAIN_EVENT_RESUMED:
+    case VIR_DOMAIN_EVENT_PMSUSPENDED:
+    case VIR_DOMAIN_EVENT_SHUTDOWN:
+        break;
+
+        /* log */
+    case VIR_DOMAIN_EVENT_UNDEFINED:
+        if (debug)
+            fprintf(stderr, "%s: %s: undefined\n", __func__, name);
         break;
     default:
         if (debug)
-            fprintf(stderr, "%s: %s: Oops, unknown (default catch)\n",
-                    __func__, name);
+            fprintf(stderr, "%s: %s: Oops, unknown (default catch): %d\n",
+                    __func__, name, event);
         break;
     }
 }
@@ -155,9 +199,6 @@ static void domain_update(virConnectPtr c, virDomainPtr d, virDomainEventType ev
 static int connect_domain_event(virConnectPtr c, virDomainPtr d,
                                 int event, int detail, void *opaque)
 {
-    if (debug)
-        fprintf(stderr, "%s: %s, event %d\n", __func__,
-                virDomainGetName(d), event);
     domain_update(c, d, event);
     return 0;
 }
@@ -255,6 +296,8 @@ main(int argc, char *argv[])
     mainloop = g_main_loop_new(NULL, false);
     g_thread_init(NULL);
     gvir_event_register();
+
+    mdns_pub_appname = APPNAME;
     mdns = mdns_pub_init(debug);
     mdns_pub_start(mdns);
 
