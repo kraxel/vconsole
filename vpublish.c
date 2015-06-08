@@ -42,13 +42,13 @@ struct display {
 static struct list_head domains = LIST_HEAD_INIT(domains);
 static struct mdns_pub *mdns;
 
-static void display_add_vnc(virDomainPtr d, xmlChar *port)
+static void display_add(virDomainPtr d, xmlChar *service, xmlChar *port)
 {
     const char *name = virDomainGetName(d);
     display *dpy = g_new0(display, 1);
 
     virDomainGetUUIDString(d, dpy->uuid);
-    dpy->entry = mdns_pub_add(mdns, name, "_rfb._tcp", atoi(port), NULL);
+    dpy->entry = mdns_pub_add(mdns, name, service, atoi(port), NULL);
 
     list_add(&dpy->next, &domains);
 }
@@ -134,7 +134,7 @@ static void domain_check(virConnectPtr c, virDomainPtr d)
             }
             if (debug)
                 fprintf(stderr, "   %d: port %s\n", i + 1, port);
-            display_add_vnc(d, port);
+            display_add(d, "_rfb._tcp", port);
         }
     }
     xmlXPathFreeObject(obj);
