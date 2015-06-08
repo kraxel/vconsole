@@ -108,7 +108,7 @@ static void update_services(AvahiClient *c, struct mdns_pub *mdns)
 
     list_for_each(item, &mdns->entries) {
 	entry = list_entry(item, struct mdns_pub_entry, next);
-	
+
 	/* If this is the first time we're called, let's create a new entry group */
 	if (!entry->group) {
 	    entry->group = avahi_entry_group_new(c, entry_group_callback, entry);
@@ -176,7 +176,7 @@ static void client_callback(AvahiClient *c,
 {
     struct mdns_pub *mdns = userdata;
     int error;
-    
+
     mdns_log_printf(mdns, LOG_DEBUG, "%s: state %d [%s]\n", __FUNCTION__,
 		    state, client_state_name[state]);
 
@@ -239,7 +239,7 @@ struct mdns_pub *mdns_pub_init(int debug)
     INIT_LIST_HEAD(&mdns->entries);
     mdns->debug = debug;
     mdns->have_tty = isatty(2);
-    
+
     openlog(mdns_pub_appname, 0, LOG_LOCAL0);
     mdns->have_syslog = 1;
 
@@ -341,7 +341,7 @@ void mdns_pub_del(struct mdns_pub_entry *entry)
 void mdns_pub_del_all(struct mdns_pub *mdns)
 {
     struct mdns_pub_entry *entry;
-    
+
     while (!list_empty(&mdns->entries)) {
 	entry = list_entry(mdns->entries.next, struct mdns_pub_entry, next);
 	mdns_pub_del(entry);
