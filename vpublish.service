@@ -1,0 +1,13 @@
+[Unit]
+Description=libvirt guest display mdns publisher
+Requires=libvirtd.service
+Requires=avahi-daemon.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/vpublish -c qemu:///system
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
