@@ -228,6 +228,13 @@ static void connect_list(virConnectPtr c)
     free(active);
 }
 
+static void connect_close(virConnectPtr c, int reason, void *opaque)
+{
+    if (debug)
+        fprintf(stderr, "%s:\n", __func__);
+    exit(0);
+}
+
 static void connect_init(const char *uri)
 {
     virConnectPtr c;
@@ -242,6 +249,8 @@ static void connect_init(const char *uri)
 
     virConnectDomainEventRegister(c, connect_domain_event,
                                   NULL, NULL);
+    virConnectRegisterCloseCallback(c, connect_close,
+                                    NULL, NULL);
     connect_list(c);
 }
 
