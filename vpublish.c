@@ -32,47 +32,76 @@ int debug = 0;
 
 /* ------------------------------------------------------------------ */
 
-typedef struct display display;
-struct display {
+typedef struct mdns_service mdns_service;
+struct mdns_service {
     char uuid[VIR_UUID_STRING_BUFLEN];
     struct mdns_pub_entry *entry;
     struct list_head next;
 };
 
-static struct list_head domains = LIST_HEAD_INIT(domains);
+static struct list_head services = LIST_HEAD_INIT(services);
 static struct mdns_pub *mdns;
 
-static void display_add(virDomainPtr d, xmlChar *service, xmlChar *port)
+static void add_service(virDomainPtr d, xmlChar *service, xmlChar *port)
 {
     const char *name = virDomainGetName(d);
-    display *dpy = g_new0(display, 1);
+    mdns_service *s = g_new0(mdns_service, 1);
 
-    virDomainGetUUIDString(d, dpy->uuid);
-    dpy->entry = mdns_pub_add(mdns, name, service, atoi(port), NULL);
+    virDomainGetUUIDString(d, s->uuid);
+    s->entry = mdns_pub_add(mdns, name, service, atoi(port), NULL);
 
-    list_add(&dpy->next, &domains);
+    list_add(&s->next, &services);
 }
 
-static void display_del(virDomainPtr d)
+static void del_services(virDomainPtr d)
 {
     char uuid[VIR_UUID_STRING_BUFLEN];
     struct list_head *item, *tmp;
-    display *dpy;
+    mdns_service *s;
 
     virDomainGetUUIDString(d, uuid);
-    list_for_each_safe(item, tmp, &domains) {
-	dpy = list_entry(item, display, next);
-        if (strcmp(dpy->uuid, uuid) != 0)
+    list_for_each_safe(item, tmp, &services) {
+	s = list_entry(item, mdns_service, next);
+        if (strcmp(s->uuid, uuid) != 0)
             continue;
-        mdns_pub_del(dpy->entry);
-        list_del(&dpy->next);
-        g_free(dpy);
+        mdns_pub_del(s->entry);
+        list_del(&s->next);
+        g_free(s);
     }
 }
 
 /* ------------------------------------------------------------------ */
 
-static void domain_check(virConnectPtr c, virDomainPtr d)
+static void domain_display(virDomainPtr d, xmlXPathObjectPtr obj,
+                           xmlChar *service)
+{
+    const char *name = virDomainGetName(d);
+    xmlChar *listen, *port;
+    xmlNodePtr cur;
+    int i;
+
+    for (i = 0; i < obj->nodesetval->nodeNr; i++) {
+        cur = obj->nodesetval->nodeTab[i];
+        listen = xmlGetProp(cur, "listen");
+        port = xmlGetProp(cur, "port");
+        if (strcmp(listen, "127.0.0.1") == 0) {
+            if (debug)
+                fprintf(stderr, "   %d: skip (@localhost, ipv4)\n", i + 1);
+            continue;
+        }
+        if (strcmp(listen, "::1") == 0) {
+            if (debug)
+                fprintf(stderr, "   %d: skip (@localhost, ipv6)\n", i + 1);
+            continue;
+        }
+        if (debug)
+            fprintf(stderr, "   %d: announce \"%s\", port \"%s\", guest \"%s\"\n",
+                    i + 1, service, port, name);
+        add_service(d, service, port);
+    }
+}
+
+static void domain_check(virDomainPtr d)
 {
     static const unsigned char *xpath_spice =
         "//domain//graphics[@type='spice']";
@@ -81,14 +110,8 @@ static void domain_check(virConnectPtr c, virDomainPtr d)
     const char *name = virDomainGetName(d);
     xmlXPathContextPtr ctx;
     xmlXPathObjectPtr obj;
-    xmlChar *listen, *port;
-    xmlNodePtr cur;
     xmlDocPtr xml;
     char *domain;
-    int i;
-
-    if (debug)
-        fprintf(stderr, "%s: %s, checking ...\n", __func__, name);
 
     domain = virDomainGetXMLDesc(d, 0);
     if (!domain) {
@@ -111,10 +134,7 @@ static void domain_check(virConnectPtr c, virDomainPtr d)
         if (debug)
             fprintf(stderr, "%s: %s, %d spice nodes\n", __func__, name,
                     obj->nodesetval->nodeNr);
-        for (i = 0; i < obj->nodesetval->nodeNr; i++) {
-            cur = obj->nodesetval->nodeTab[i];
-            /* TODO */
-        }
+        /* TODO */
     }
     xmlXPathFreeObject(obj);
 
@@ -123,19 +143,7 @@ static void domain_check(virConnectPtr c, virDomainPtr d)
         if (debug)
             fprintf(stderr, "%s: %s, %d vnc nodes\n", __func__, name,
                     obj->nodesetval->nodeNr);
-        for (i = 0; i < obj->nodesetval->nodeNr; i++) {
-            cur = obj->nodesetval->nodeTab[i];
-            listen = xmlGetProp(cur, "listen");
-            port = xmlGetProp(cur, "port");
-            if (strcmp(listen, "127.0.0.1") == 0) {
-                if (debug)
-                    fprintf(stderr, "   %d: skip (@localhost)\n", i + 1);
-                continue;
-            }
-            if (debug)
-                fprintf(stderr, "   %d: port %s\n", i + 1, port);
-            display_add(d, "_rfb._tcp", port);
-        }
+        domain_display(d, obj, "_rfb._tcp");
     }
     xmlXPathFreeObject(obj);
 
@@ -159,19 +167,19 @@ static void domain_update(virConnectPtr c, virDomainPtr d, virDomainEventType ev
     case VIR_DOMAIN_EVENT_STARTED:
         if (debug)
             fprintf(stderr, "%s: %s: started\n", __func__, name);
-        domain_check(c, d);
+        domain_check(d);
         break;
 
         /* unpublish */
     case VIR_DOMAIN_EVENT_STOPPED:
         if (debug)
             fprintf(stderr, "%s: %s: stopped\n", __func__, name);
-        display_del(d);
+        del_services(d);
         break;
     case VIR_DOMAIN_EVENT_CRASHED:
         if (debug)
             fprintf(stderr, "%s: %s: crashed\n", __func__, name);
-        display_del(d);
+        del_services(d);
         break;
 
         /* ignore */
@@ -214,7 +222,7 @@ static void connect_list(virConnectPtr c)
     n = virConnectListDomains(c, active, n);
     for (i = 0; i < n; i++) {
         d = virDomainLookupByID(c, active[i]);
-        domain_check(c, d);
+        domain_check(d);
         virDomainFree(d);
     }
     free(active);
