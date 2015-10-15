@@ -301,9 +301,7 @@ static void run_virt_viewer(struct vconsole_domain *dom,
 
     argv[argc++] = "virt-viewer";
     argv[argc++] = "--wait";
-#if 0
-    argv[argc++] = "--direct";
-#endif
+    argv[argc++] = "--attach";
     if (reconnect)
         argv[argc++] = "--reconnect";
     argv[argc++] = "-c";
