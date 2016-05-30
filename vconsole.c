@@ -696,14 +696,14 @@ static char ui_xml[] =
 "    </menu>\n"
 "  </menubar>\n"
 "  <toolbar action='ToolBar'>"
+"    <toolitem action='GuestRunGfx'/>\n"
+"    <separator/>\n"
 "    <toolitem action='GuestRun'/>\n"
 "    <toolitem action='GuestPause'/>\n"
 "    <toolitem action='GuestSave'/>\n"
 "    <separator/>\n"
 "    <toolitem action='GuestReset'/>\n"
 "    <toolitem action='GuestKill'/>\n"
-"    <separator/>\n"
-"    <toolitem action='GuestRunGfx'/>\n"
 "  </toolbar>\n"
 "</ui>\n";
 
