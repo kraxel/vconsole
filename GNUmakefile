@@ -10,7 +10,7 @@ CFLAGS	+= -Wno-pointer-sign
 VFLAGS	:= --leak-check=full --show-possibly-lost=no 
 
 # build
-TARGETS		:= vconsole vpublish
+TARGETS	:= vconsole vpublish
 
 # default target
 all: build
@@ -62,6 +62,7 @@ build: $(TARGETS)
 else
 build:
 	@echo "build dependencies are missing"
+	@echo ""
 	@false
 endif
 
