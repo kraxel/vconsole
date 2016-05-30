@@ -73,7 +73,8 @@ install: build
 	$(INSTALL_BINARY) $(TARGETS) $(bindir)
 	$(INSTALL_DATA) vconsole.man $(mandir)/man1/vconsole.1
 	$(INSTALL_DATA) $(DESKTOP) $(appdir)
-	$(INSTALL_DATA) $(SERVICE) /usr/lib/systemd/system
+	$(INSTALL_DIR) $(DESTDIR)/usr/lib/systemd/system
+	$(INSTALL_DATA) $(SERVICE) $(DESTDIR)/usr/lib/systemd/system
 
 valgrind: vconsole
 	rm -f valgrind.log
