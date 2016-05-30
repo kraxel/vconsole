@@ -5,7 +5,6 @@ include mk/Variables.mk
 # add our flags + libs
 CFLAGS	+= -DVERSION='"$(VERSION)"' -DLIB='"$(LIB)"'
 CFLAGS	+= -Wno-pointer-sign
-CFLAGS	+= -Wno-deprecated-declarations
 
 # valgrind options
 VFLAGS	:= --leak-check=full --show-possibly-lost=no 

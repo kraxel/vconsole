@@ -706,7 +706,7 @@ static GtkWidget *tab_label_with_close_button(const char *labeltext,
     limg = gtk_image_new_from_stock(GTK_STOCK_CLOSE, GTK_ICON_SIZE_MENU);
     gtk_button_set_image(GTK_BUTTON(lclose), limg);
     gtk_button_set_always_show_image(GTK_BUTTON(lclose), TRUE);
-    lhbox = gtk_hbox_new(FALSE, 1);
+    lhbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
     gtk_box_pack_start(GTK_BOX(lhbox), label, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(lhbox), lclose, FALSE, TRUE, 0);
     gtk_widget_show_all(lhbox);
@@ -738,7 +738,7 @@ void domain_activate(struct vconsole_domain *dom)
         gtk_misc_set_alignment(GTK_MISC(dom->status), 0, 0.5);
         gtk_misc_set_padding(GTK_MISC(dom->status), 3, 1);
 
-        dom->vbox = gtk_vbox_new(FALSE, 1);
+        dom->vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
         gtk_container_set_border_width(GTK_CONTAINER(dom->vbox), 1);
         gtk_box_pack_start(GTK_BOX(dom->vbox), dom->vte, TRUE, TRUE, 0);
         fstatus = gtk_frame_new(NULL);

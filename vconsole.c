@@ -185,21 +185,29 @@ static void menu_cb_close_app(GtkAction *action, gpointer userdata)
     gtk_widget_destroy(win->toplevel);
 }
 
+static gboolean terminal_font_filter(const PangoFontFamily *family,
+                                     const PangoFontFace   *face,
+                                     gpointer               data)
+{
+    return pango_font_family_is_monospace((PangoFontFamily *) family);
+}
+
 static void menu_cb_config_font(GtkAction *action, void *data)
 {
     struct vconsole_window *win = data;
     GtkWidget *dialog;
 
-    dialog = gtk_font_selection_dialog_new("Terminal font");
+    dialog = gtk_font_chooser_dialog_new("Terminal font",
+                                         GTK_WINDOW(win->toplevel));
     if (win->tty_font)
-        gtk_font_selection_dialog_set_font_name
-            (GTK_FONT_SELECTION_DIALOG(dialog), win->tty_font);
+        gtk_font_chooser_set_font(GTK_FONT_CHOOSER(dialog), win->tty_font);
+    gtk_font_chooser_set_filter_func(GTK_FONT_CHOOSER(dialog),
+                                     terminal_font_filter, NULL, NULL);
 
     gtk_widget_show_all(dialog);
     switch (gtk_dialog_run(GTK_DIALOG(dialog))) {
     case GTK_RESPONSE_OK:
-        win->tty_font = gtk_font_selection_dialog_get_font_name
-	    (GTK_FONT_SELECTION_DIALOG(dialog));
+        win->tty_font = gtk_font_chooser_get_font(GTK_FONT_CHOOSER(dialog));
 	g_key_file_set_string(config, "tty", "font", win->tty_font);
         config_write();
         domain_configure_all_vtes(win);
@@ -208,27 +216,24 @@ static void menu_cb_config_font(GtkAction *action, void *data)
     gtk_widget_destroy(dialog);
 }
 
-static int pickcolor(char *title, char *group, char *key, char *current)
+static int pickcolor(GtkWindow *parent, char *title,
+                     char *group, char *key, char *current)
 {
     GtkWidget *dialog;
-    GdkColor color = {0,0,0,0};
-    GtkColorSelection *csel;
-    char name[16];
+    GdkRGBA color = { 0, 0, 0, 0 };
+    char *name;
     int rc = -1;
 
-    gdk_color_parse(current, &color);
-    dialog = gtk_color_selection_dialog_new(title);
-    csel = GTK_COLOR_SELECTION(gtk_color_selection_dialog_get_color_selection
-                               (GTK_COLOR_SELECTION_DIALOG(dialog)));
-    gtk_color_selection_set_has_opacity_control(csel, FALSE);
-    gtk_color_selection_set_current_color(csel, &color);
+    gdk_rgba_parse(&color, current);
+    dialog = gtk_color_chooser_dialog_new(title, parent);
+    gtk_color_chooser_set_use_alpha(GTK_COLOR_CHOOSER(dialog), false);
+    gtk_color_chooser_set_rgba(GTK_COLOR_CHOOSER(dialog), &color);
 
     gtk_widget_show_all(dialog);
     switch (gtk_dialog_run(GTK_DIALOG(dialog))) {
     case GTK_RESPONSE_OK:
-	gtk_color_selection_get_current_color(csel, &color);
-        snprintf(name, sizeof(name), "#%04x%04x%04x",
-                 color.red, color.green, color.blue);
+        gtk_color_chooser_get_rgba(GTK_COLOR_CHOOSER(dialog), &color);
+        name = gdk_rgba_to_string(&color);
         g_key_file_set_string(config, group, key, name);
         config_write();
 	rc = 0;
@@ -242,7 +247,8 @@ static void menu_cb_config_fg(GtkAction *action, void *data)
     struct vconsole_window *win = data;
     GError *err = NULL;
 
-    if (0 != pickcolor("Terminal text color", "tty", "foreground", win->tty_fg))
+    if (0 != pickcolor(GTK_WINDOW(win->toplevel), "Terminal text color",
+                       "tty", "foreground", win->tty_fg))
 	return;
     win->tty_fg = g_key_file_get_string(config, "tty", "foreground", &err);
     domain_configure_all_vtes(win);
@@ -253,7 +259,8 @@ static void menu_cb_config_bg(GtkAction *action, void *data)
     struct vconsole_window *win = data;
     GError *err = NULL;
 
-    if (0 != pickcolor("Terminal background", "tty", "background", win->tty_bg))
+    if (0 != pickcolor(GTK_WINDOW(win->toplevel), "Terminal background",
+                       "tty", "background", win->tty_bg))
 	return;
     win->tty_bg = g_key_file_get_string(config, "tty", "background", &err);
     domain_configure_all_vtes(win);
@@ -841,7 +848,7 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     gtk_notebook_popup_enable(GTK_NOTEBOOK(win->notebook));
 
     /* Make a vbox and put stuff in */
-    vbox = gtk_vbox_new(FALSE, 1);
+    vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
     gtk_container_set_border_width(GTK_CONTAINER(vbox), 1);
     gtk_container_add(GTK_CONTAINER(win->toplevel), vbox);
     menubar = gtk_ui_manager_get_widget(win->ui, "/MainMenu");
@@ -1110,7 +1117,6 @@ main(int argc, char *argv[])
         uri = getenv("VIRSH_DEFAULT_CONNECT_URI");
 
     /* init */
-    g_thread_init(NULL);
     gvir_event_register();
     config_read();
 
