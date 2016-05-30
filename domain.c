@@ -15,9 +15,7 @@ static const char *state_name[] = {
     [ VIR_DOMAIN_SHUTDOWN ]    = "shutdown",
     [ VIR_DOMAIN_SHUTOFF ]     = "shutoff",
     [ VIR_DOMAIN_CRASHED ]     = "crashed",
-#ifdef VIR_DOMAIN_PMSUSPENDED
     [ VIR_DOMAIN_PMSUSPENDED ] = "suspended",
-#endif
 };
 
 static const char *domain_state_name(struct vconsole_domain *dom)
