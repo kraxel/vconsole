@@ -607,23 +607,23 @@ static const GtkActionEntry entries[] = {
 	.callback    = G_CALLBACK(menu_cb_vm_save),
     },{
 	.name        = "GuestReboot",
+	.stock_id    = GTK_STOCK_REFRESH,
 	.label       = "Reboot",
         .tooltip     = "Reboot guest",
 	.callback    = G_CALLBACK(menu_cb_vm_reboot),
     },{
 	.name        = "GuestShutdown",
+	.stock_id    = GTK_STOCK_MEDIA_STOP,
 	.label       = "Shutdown",
         .tooltip     = "Shutdown guest",
 	.callback    = G_CALLBACK(menu_cb_vm_shutdown),
     },{
 	.name        = "GuestReset",
-	.stock_id    = GTK_STOCK_REFRESH,
 	.label       = "Reset",
         .tooltip     = "Reset guest",
 	.callback    = G_CALLBACK(menu_cb_vm_reset),
     },{
 	.name        = "GuestKill",
-	.stock_id    = GTK_STOCK_MEDIA_STOP,
 	.label       = "Destroy",
         .tooltip     = "Destroy guest",
 	.callback    = G_CALLBACK(menu_cb_vm_kill),
@@ -708,9 +708,8 @@ static char ui_xml[] =
 "    <toolitem action='GuestRun'/>\n"
 "    <toolitem action='GuestPause'/>\n"
 "    <toolitem action='GuestSave'/>\n"
-"    <separator/>\n"
-"    <toolitem action='GuestReset'/>\n"
-"    <toolitem action='GuestKill'/>\n"
+"    <toolitem action='GuestReboot'/>\n"
+"    <toolitem action='GuestShutdown'/>\n"
 "  </toolbar>\n"
 "</ui>\n";
 
