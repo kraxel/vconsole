@@ -311,7 +311,6 @@ main(int argc, char *argv[])
 
     /* init */
     mainloop = g_main_loop_new(NULL, false);
-    g_thread_init(NULL);
     gvir_event_register();
 
     mdns_pub_appname = APPNAME;
