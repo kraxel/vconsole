@@ -24,7 +24,7 @@ LIB		:= $(LIB)
 HAVE_VTE291	:= $(call ac_pkg_config,vte-2.91)
 endef
 
-ifeq ($(HAVE_VTE291),yes)
+ifeq ($(HAVE_VTE291),x-yes)
 pkgvte := vte-2.91
 else
 pkgvte := vte-2.90
