@@ -366,7 +366,7 @@ static void domain_vte_geometry_hints(struct vconsole_domain *dom, GtkWindow *wi
 {
     GdkWindowHints mask = 0;
     GdkGeometry geo = {};
-    GtkBorder *ib;
+    GtkBorder padding = { 0 };
 
     geo.width_inc  = vte_terminal_get_char_width(VTE_TERMINAL(dom->vte));
     geo.height_inc = vte_terminal_get_char_height(VTE_TERMINAL(dom->vte));
@@ -377,11 +377,16 @@ static void domain_vte_geometry_hints(struct vconsole_domain *dom, GtkWindow *wi
     geo.min_width  = geo.width_inc * 80;
     geo.min_height = geo.height_inc * 25;
     mask |= GDK_HINT_MIN_SIZE;
-    gtk_widget_style_get(dom->vte, "inner-border", &ib, NULL);
-    geo.base_width  += ib->left + ib->right;
-    geo.base_height += ib->top + ib->bottom;
-    geo.min_width   += ib->left + ib->right;
-    geo.min_height  += ib->top + ib->bottom;
+
+    gtk_style_context_get_padding(
+        gtk_widget_get_style_context(dom->vte),
+        gtk_widget_get_state_flags(dom->vte),
+        &padding);
+
+    geo.base_width  += padding.left + padding.right;
+    geo.base_height += padding.top + padding.bottom;
+    geo.min_width   += padding.left + padding.right;
+    geo.min_height  += padding.top + padding.bottom;
 
     gtk_window_set_geometry_hints(win, dom->vte, &geo, mask);
 }
