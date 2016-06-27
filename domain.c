@@ -71,21 +71,23 @@ static void domain_configure_vte(struct vconsole_domain *dom)
 {
     struct vconsole_window *win = dom->conn->win;
     VteTerminal *vte = VTE_TERMINAL(dom->vte);
-    VteTerminalCursorBlinkMode bl =
+    VteCursorBlinkMode bl =
         win->tty_blink ? VTE_CURSOR_BLINK_ON : VTE_CURSOR_BLINK_OFF;
-    GdkColor fg = {0,0,0,0};
-    GdkColor bg = {0,0,0,0};
+    GdkRGBA fg = { 0, 0, 0, 0 };
+    GdkRGBA bg = { 0, 0, 0, 0 };
+    PangoFontDescription *font;
 
     if (!dom->vte)
         return;
 
-    gdk_color_parse(win->tty_fg, &fg);
-    gdk_color_parse(win->tty_bg, &bg);
-
-    vte_terminal_set_font_from_string(vte, win->tty_font);
+    gdk_rgba_parse(&fg, win->tty_fg);
+    gdk_rgba_parse(&bg, win->tty_bg);
     vte_terminal_set_cursor_blink_mode(vte, bl);
     vte_terminal_set_color_foreground(vte, &fg);
     vte_terminal_set_color_background(vte, &bg);
+
+    font = pango_font_description_from_string(win->tty_font);
+    vte_terminal_set_font(vte, font);
 }
 
 static void make_dirs(const char *filename)

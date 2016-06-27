@@ -106,15 +106,18 @@ static int gtk_getstring(GtkWidget *window, char *title, char *message,
     dialog = gtk_dialog_new_with_buttons(title,
                                          GTK_WINDOW(window),
                                          GTK_DIALOG_DESTROY_WITH_PARENT,
-                                         GTK_STOCK_OK,
-                                         GTK_RESPONSE_ACCEPT,
-                                         GTK_STOCK_CANCEL,
-                                         GTK_RESPONSE_REJECT,
+                                         "_OK",     GTK_RESPONSE_ACCEPT,
+                                         "_Cancel", GTK_RESPONSE_REJECT,
                                          NULL);
     gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_ACCEPT);
 
     label = gtk_label_new(message);
+#if GTK_CHECK_VERSION(3,16,0)
+    gtk_label_set_xalign(GTK_LABEL(label), 0);
+    gtk_label_set_yalign(GTK_LABEL(label), 0.5);
+#else
     gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+#endif
 
     entry = gtk_entry_new();
     gtk_entry_set_text(GTK_ENTRY(entry), dest);
@@ -471,7 +474,6 @@ static void menu_cb_about(GtkAction *action, gpointer userdata)
                           "authors",         authors,
                           "comments",        comments,
                           "copyright",       copyright,
-                          "logo-icon-name",  GTK_STOCK_ABOUT,
                           "version",         VERSION,
                           NULL);
 }

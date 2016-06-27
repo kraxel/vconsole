@@ -21,15 +21,9 @@ include mk/Autoconf.mk
 
 define make-config
 LIB		:= $(LIB)
-HAVE_VTE291	:= $(call ac_pkg_config,vte-2.91)
 endef
 
-ifeq ($(HAVE_VTE291),x-yes)
-pkgvte := vte-2.91
-else
-pkgvte := vte-2.90
-endif
-pkgs_vconsole := glib-2.0 gthread-2.0 gtk+-3.0 $(pkgvte) libvirt
+pkgs_vconsole := glib-2.0 gthread-2.0 gtk+-3.0 vte-2.91 libvirt
 pkgs_vpublish := glib-2.0 gthread-2.0 libvirt libxml-2.0 avahi-client avahi-glib
 HAVE_DEPS := $(shell pkg-config $(pkgs_vconsole) $(pkgs_vpublish) && echo yes)
 
