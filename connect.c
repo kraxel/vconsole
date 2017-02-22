@@ -49,7 +49,7 @@ static void connect_error(void *opaque, virErrorPtr err)
         break;
     }
     gtk_message(conn->win->toplevel, dialog, type,
-                "%s [ %d / %d]\n",
+                "%s [ %d / %d ]\n",
                 err->message,
                 err->code, err->domain);
 }
