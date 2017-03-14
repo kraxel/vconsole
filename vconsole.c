@@ -300,6 +300,14 @@ static struct vconsole_domain *find_guest(struct vconsole_window *win)
     return dom;
 }
 
+static void prepare_exec(void)
+{
+    int i;
+
+    for (i = 3; i < 1024; i++)
+        close(i);
+}
+
 static void run_virt_viewer(struct vconsole_domain *dom,
                             bool reconnect)
 {
@@ -326,6 +334,7 @@ static void run_virt_viewer(struct vconsole_domain *dom,
         return;
     } else {
         /* child */
+        prepare_exec();
         execvp("virt-viewer", argv);
         perror("execvp");
         exit(1);
@@ -356,6 +365,7 @@ static void run_virsh_edit(struct vconsole_domain *dom)
         return;
     } else {
         /* child */
+        prepare_exec();
         execvp("xterm", argv);
         perror("execvp");
         exit(1);
@@ -485,6 +495,7 @@ static void menu_cb_manual(GtkAction *action, gpointer userdata)
         return;
     } else {
         /* child */
+        prepare_exec();
         execlp("xdg-open", "xdg-open", "man:vconsole(1)", NULL);
         perror("execlp");
         exit(1);
