@@ -1104,7 +1104,7 @@ main(int argc, char *argv[])
     int c;
 
     /* disable ibus (causes problems after fork+exec virt-viewer */
-    setenv("GTK_IM_MODULE", "gtk-im-context-simple", 1);
+    setenv("GTK_IM_MODULE", "gtk-im-context-simple", 0);
 
     gtk_init(&argc, &argv);
     for (;;) {
