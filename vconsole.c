@@ -861,7 +861,6 @@ static struct vconsole_window *vconsole_toplevel_create(void)
 
     /* Make a vbox and put stuff in */
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
-    gtk_container_set_border_width(GTK_CONTAINER(vbox), 1);
     gtk_container_add(GTK_CONTAINER(win->toplevel), vbox);
     menubar = gtk_ui_manager_get_widget(win->ui, "/MainMenu");
     gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
