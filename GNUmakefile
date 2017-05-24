@@ -64,7 +64,7 @@ endif
 install: build
 	$(INSTALL_DIR) $(bindir) $(mandir)/man1 $(appdir)
 	$(INSTALL_BINARY) $(TARGETS) $(bindir)
-	$(INSTALL_DATA) vconsole.man $(mandir)/man1/vconsole.1
+	$(INSTALL_DATA) vconsole.1 $(mandir)/man1
 	$(INSTALL_DATA) $(DESKTOP) $(appdir)
 	$(INSTALL_DIR) $(DESTDIR)/usr/lib/systemd/system
 	$(INSTALL_DATA) $(SERVICE) $(DESTDIR)/usr/lib/systemd/system
