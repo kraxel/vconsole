@@ -1,5 +1,5 @@
 Make.config
-vconsole
+./vconsole
 vpublish
 valgrind.log
 *.o
