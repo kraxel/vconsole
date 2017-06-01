@@ -714,7 +714,7 @@ static GtkWidget *tab_label_with_close_button(const char *labeltext,
     label = gtk_label_new(labeltext);
     lclose = gtk_button_new();
     g_signal_connect(lclose, "clicked", callback, opaque);
-    limg = gtk_image_new_from_stock(GTK_STOCK_CLOSE, GTK_ICON_SIZE_MENU);
+    limg = gtk_image_new_from_icon_name("window-close", GTK_ICON_SIZE_MENU);
     gtk_button_set_image(GTK_BUTTON(lclose), limg);
     gtk_button_set_always_show_image(GTK_BUTTON(lclose), TRUE);
     lhbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1);
