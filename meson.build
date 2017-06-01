@@ -1,6 +1,9 @@
 # -*-python-*-
 project('vconsole', 'c')
 
+# tweak warnings
+add_global_arguments('-Wno-pointer-sign', language : 'c')
+
 # init configuration
 config       = configuration_data()
 version      = run_command('cat', 'VERSION')
