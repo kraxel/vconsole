@@ -398,7 +398,8 @@ static gboolean domain_window_close(GtkWidget *widget, GdkEvent *event,
     struct vconsole_window *win = dom->conn->win;
     GtkWidget *lhbox;
 
-    gtk_widget_reparent(dom->vbox, win->notebook);
+    gtk_container_remove(GTK_CONTAINER(dom->window), dom->vbox);
+    gtk_container_add(GTK_CONTAINER(win->notebook), dom->vbox);
     lhbox = tab_label_with_close_button(dom->name,
                                         G_CALLBACK(domain_close_tab_btn),
                                         dom);
@@ -411,11 +412,14 @@ static gboolean domain_window_close(GtkWidget *widget, GdkEvent *event,
 
 void domain_untabify(struct vconsole_domain *dom)
 {
+    struct vconsole_window *win = dom->conn->win;
+
     if (dom->window)
         return;
 
     dom->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_widget_reparent(dom->vbox, dom->window);
+    gtk_container_remove(GTK_CONTAINER(win->notebook), dom->vbox);
+    gtk_container_add(GTK_CONTAINER(dom->window), dom->vbox);
     gtk_window_set_title(GTK_WINDOW(dom->window), dom->name);
     domain_vte_geometry_hints(dom, GTK_WINDOW(dom->window));
     g_signal_connect(dom->window, "delete-event",
