@@ -746,8 +746,8 @@ void domain_activate(struct vconsole_domain *dom)
         vte_terminal_set_size(VTE_TERMINAL(dom->vte), 80, 24);
 
         dom->status = gtk_label_new("-");
-        gtk_misc_set_alignment(GTK_MISC(dom->status), 0, 0.5);
-        gtk_misc_set_padding(GTK_MISC(dom->status), 3, 1);
+        gtk_widget_set_halign(dom->status, GTK_ALIGN_START);
+        gtk_widget_set_valign(dom->status, GTK_ALIGN_CENTER);
 
         dom->vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
         gtk_container_set_border_width(GTK_CONTAINER(dom->vbox), 1);
