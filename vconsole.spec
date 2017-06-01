@@ -1,6 +1,6 @@
 Name:         vconsole
 License:      GPLv2+
-Version:      0.7
+Version:      0.8
 Release:      1%{?dist}
 Summary:      Virtual machine serial console manager
 Group:        Applications/System
@@ -44,3 +44,6 @@ make prefix=/usr DESTDIR=%{buildroot} STRIP="" install
 %{_unitdir}/vpublish.service
 
 %changelog
+* Thu Jun 01 2017 Gerd Hoffmann <kraxel@redhat.com> 0.8-1
+- new package built with tito
+
