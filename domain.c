@@ -620,7 +620,11 @@ void domain_update(struct vconsole_connect *conn,
     }
 
     /* update guest info */
-    domain_update_info(dom, d);
+    if (domain_update_info(dom, d) != 0) {
+        gtk_tree_store_remove(conn->win->store, &guest);
+        domain_free(dom);
+        return;
+    }
 
     /* update tree store cols */
     domain_update_tree_store(dom, &guest);
