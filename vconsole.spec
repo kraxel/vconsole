@@ -7,6 +7,7 @@ Group:        Applications/System
 URL:          http://www.kraxel.org/blog/linux/%{name}/
 Source:       http://www.kraxel.org/releases/%{name}/%{name}-%{version}.tar.gz
 
+BuildRequires: gcc
 BuildRequires: pkgconfig(glib-2.0)
 BuildRequires: pkgconfig(gthread-2.0)
 BuildRequires: pkgconfig(gtk+-3.0)
