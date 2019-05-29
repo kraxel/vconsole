@@ -4,7 +4,6 @@ language: c
 compiler: gcc
 
 before_script:
-  - pip3 install --upgrade pip
   - pip3 install meson
 
 addons:
@@ -15,6 +14,7 @@ addons:
     packages:
       - python3
       - python3-pip
+      - python3-setuptools
       - libgtk-3-dev
       - libvte-2.91-dev
       - libxml2-dev
