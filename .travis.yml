@@ -4,7 +4,7 @@ language: c
 compiler: gcc
 
 before_script:
-  - pip3 install meson
+  - sudo pip3 install meson
 
 addons:
   apt:
