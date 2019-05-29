@@ -1,0 +1,23 @@
+os: linux
+dist: xenial
+language: c
+compiler: gcc
+
+addons:
+  apt:
+    update: true
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - meson
+      - libgtk-3-dev
+      - libvte-2.91-dev
+      - libxml2-dev
+      - libvirt-dev
+      - libavahi-client-dev
+      - libavahi-glib-dev
+
+script:
+  - mkdir build-travis
+  - meson build-travis
+  - ninja -C build-travis
