@@ -20,6 +20,9 @@ static void config_read(void)
     if (!home)
         return;
     config_file = g_strdup_printf("%s/.vconsole", home);
+    if (access(config_file, F_OK) != 0)
+        config_file = g_strdup_printf("%s/.config/vconsole.conf", home);
+
     config = g_key_file_new();
     g_key_file_load_from_file(config, config_file,
                               G_KEY_FILE_KEEP_COMMENTS, &err);
