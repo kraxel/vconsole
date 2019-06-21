@@ -156,7 +156,7 @@ struct vconsole_connect *connect_init(struct vconsole_window *win,
                        NAME_COL,       name,
                        TYPE_COL,       type,
                        URI_COL,        uri,
-                       FOREGROUND_COL, "black",
+                       FOREGROUND_COL, win->darkmode ? "white" : "black",
                        WEIGHT_COL,     PANGO_WEIGHT_NORMAL,
                        -1);
 

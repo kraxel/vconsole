@@ -326,6 +326,7 @@ static int domain_update_info(struct vconsole_domain *dom, virDomainPtr d)
 static void domain_update_tree_store(struct vconsole_domain *dom,
                                      GtkTreeIter *guest)
 {
+    bool darkmode = dom->conn->win->darkmode;
     const char *foreground;
     char load[16], mem[16];
     PangoWeight weight;
@@ -333,11 +334,11 @@ static void domain_update_tree_store(struct vconsole_domain *dom,
 
     switch (dom->info.state) {
     case VIR_DOMAIN_RUNNING:
-        foreground = "darkgreen";
+        foreground = darkmode ? "lightgreen" : "darkgreen";
         weight = PANGO_WEIGHT_BOLD;
         break;
     default:
-        foreground = "black";
+        foreground = darkmode ? "white" : "black";
         weight = PANGO_WEIGHT_NORMAL;
         break;
     }

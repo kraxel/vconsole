@@ -70,6 +70,7 @@ struct vconsole_window {
     char                      *tty_fg;
     char                      *tty_bg;
     gboolean                  vm_logging;
+    gboolean                  darkmode;
 };
 
 extern int debug;

@@ -1080,6 +1080,26 @@ static gboolean vconsole_update(gpointer data)
     return TRUE;
 }
 
+static void vconsole_check_darkmode(struct vconsole_window *win)
+{
+    GtkStyle *style;
+    gint fg, bg;
+
+    style = gtk_widget_get_style(GTK_WIDGET(win->tree));
+    fg = (style->text[GTK_STATE_NORMAL].red * 3 +
+          style->text[GTK_STATE_NORMAL].green * 6 +
+          style->text[GTK_STATE_NORMAL].blue);
+    bg = (style->bg[GTK_STATE_NORMAL].red * 3 +
+          style->bg[GTK_STATE_NORMAL].green * 6 +
+          style->bg[GTK_STATE_NORMAL].blue);
+    if (fg > bg)
+        win->darkmode = true;
+#if 0
+    fprintf(stderr, "%s: fg %d, bg %d, darkmode %s\n",
+            __func__, fg, bg, win->darkmode ? "yes" : "no");
+#endif
+}
+
 /* ------------------------------------------------------------------ */
 
 static void usage(FILE *fp)
@@ -1142,6 +1162,7 @@ main(int argc, char *argv[])
     vconsole_tab_list_create(win);
     gtk_widget_show_all(win->toplevel);
     gtk_widget_grab_focus(win->notebook);
+    vconsole_check_darkmode(win);
 
     if (uri)
         connect_init(win, uri);
