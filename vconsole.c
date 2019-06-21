@@ -149,6 +149,8 @@ static int gtk_getstring(GtkWidget *window, char *title, char *message,
 
 /* ------------------------------------------------------------------ */
 
+#if 0
+
 static void menu_cb_connect_ask(GtkAction *action, gpointer userdata)
 {
     struct vconsole_window *win = userdata;
@@ -740,7 +742,11 @@ static char recent_xml[] =
 "  </menubar>\n"
 "</ui>\n";
 
+#endif
+
 /* ------------------------------------------------------------------ */
+
+#if 0
 
 static gboolean window_state_cb(GtkWidget *widget, GdkEventWindowState *event,
 				gpointer userdata)
@@ -764,10 +770,14 @@ static gboolean window_state_cb(GtkWidget *widget, GdkEventWindowState *event,
     return TRUE;
 }
 
+#endif
+
 static void destroy(GtkWidget *widget, gpointer data)
 {
     gtk_main_quit();
 }
+
+#if 0
 
 static void vconsole_build_recent(struct vconsole_window *win)
 {
@@ -821,12 +831,17 @@ static void vconsole_build_recent(struct vconsole_window *win)
     g_free(xml);
 }
 
+#endif
+
 static struct vconsole_window *vconsole_toplevel_create(void)
 {
     struct vconsole_window *win;
-    GtkWidget *vbox, *menubar, *toolbar, *item;
+    GtkWidget *vbox;
+#if 0
+    GtkWidget *menubar, *toolbar, *item;
     GtkAccelGroup *accel;
     GtkActionGroup *ag;
+#endif
     GError *err;
 
     win = g_new0(struct vconsole_window, 1);
@@ -835,10 +850,13 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     gtk_window_set_default_size(GTK_WINDOW(win->toplevel), 800, 600);
     g_signal_connect(G_OBJECT(win->toplevel), "destroy",
 		     G_CALLBACK(destroy), win);
+#if 0
     g_signal_connect(G_OBJECT(win->toplevel), "window-state-event",
 		     G_CALLBACK(window_state_cb), win);
+#endif
 
     /* menu + toolbar */
+#if 0
     win->ui = gtk_ui_manager_new();
     ag = gtk_action_group_new("MenuActions");
     gtk_action_group_add_actions(ag, entries, G_N_ELEMENTS(entries), win);
@@ -854,6 +872,7 @@ static struct vconsole_window *vconsole_toplevel_create(void)
 	g_error_free(err);
 	exit(1);
     }
+#endif
 
     /* main area */
     win->notebook = gtk_notebook_new();
@@ -865,11 +884,13 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     /* Make a vbox and put stuff in */
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
     gtk_container_add(GTK_CONTAINER(win->toplevel), vbox);
+#if 0
     menubar = gtk_ui_manager_get_widget(win->ui, "/MainMenu");
     gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
     toolbar = gtk_ui_manager_get_widget(win->ui, "/ToolBar");
     if (toolbar)
 	gtk_box_pack_start(GTK_BOX(vbox), toolbar, FALSE, FALSE, 0);
+#endif
     gtk_box_pack_start(GTK_BOX(vbox), win->notebook, TRUE, TRUE, 0);
 
     /* read config */
@@ -893,10 +914,12 @@ static struct vconsole_window *vconsole_toplevel_create(void)
         win->tty_bg = "black";
 
     /* apply config */
+#if 0
     item = gtk_ui_manager_get_widget(win->ui, "/MainMenu/ViewMenu/TerminalBlink");
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), win->tty_blink);
     item = gtk_ui_manager_get_widget(win->ui, "/MainMenu/GuestMenu/GuestLogging");
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), win->vm_logging);
+#endif
 
     return win;
 }
@@ -1166,7 +1189,9 @@ main(int argc, char *argv[])
 
     if (uri)
         connect_init(win, uri);
+#if 0
     vconsole_build_recent(win);
+#endif
 
     g_timeout_add(10 * 1000, vconsole_update, win);
 
