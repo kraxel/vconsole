@@ -24,7 +24,15 @@ configure_file(output : 'config.h', configuration : config)
 add_global_arguments(['-include', 'config.h'], language : 'c')
 
 # build & install
-vconsole_srcs = [ 'vconsole.c', 'connect.c', 'domain.c', 'libvirt-glib-event.c' ]
+
+stringify    = find_program('./stringify.sh')
+builder_main = custom_target('builder-main',
+                             input   : ['builder-main.xml'],
+                             output  : ['builder-main.h'],
+                             command : [ stringify, '@INPUT@', '@OUTPUT@' ])
+
+vconsole_srcs = [ 'vconsole.c', 'connect.c', 'domain.c', 'libvirt-glib-event.c',
+                  builder_main ]
 vpublish_srcs = [ 'vpublish.c', 'mdns-publish.c', 'libvirt-glib-event.c' ]
 
 vconsole_deps = [ glib_dep, gthread_dep, gtk3_dep, vte_dep, libvirt_dep ]

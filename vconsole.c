@@ -746,6 +746,12 @@ static char recent_xml[] =
 
 /* ------------------------------------------------------------------ */
 
+static char builder_main_xml[] =
+#include "builder-main.h"
+    "";
+
+/* ------------------------------------------------------------------ */
+
 #if 0
 
 static gboolean window_state_cb(GtkWidget *widget, GdkEventWindowState *event,
