@@ -27,7 +27,7 @@ add_global_arguments(['-include', 'config.h'], language : 'c')
 
 stringify    = find_program('./stringify.sh')
 builder_main = custom_target('builder-main',
-                             input   : ['builder-main.xml'],
+                             input   : ['builder-main.ui'],
                              output  : ['builder-main.h'],
                              command : [ stringify, '@INPUT@', '@OUTPUT@' ])
 
