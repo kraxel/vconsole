@@ -778,7 +778,7 @@ static gboolean window_state_cb(GtkWidget *widget, GdkEventWindowState *event,
 
 #endif
 
-static void destroy(GtkWidget *widget, gpointer data)
+static void window_destroy(GtkWidget *widget, gpointer data)
 {
     gtk_main_quit();
 }
@@ -896,11 +896,14 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     win = g_new0(struct vconsole_window, 1);
 
     builder = gtk_builder_new_from_string(main_ui, -1);
-    gtk_builder_connect_signals(builder, NULL);
     win->toplevel = GTK_WIDGET(gtk_builder_get_object(builder, "toplevel"));
     win->notebook = GTK_WIDGET(gtk_builder_get_object(builder, "notebook"));
-    fprintf(stderr, "%s: %p %p\n", __func__,
-            win->toplevel, win->notebook);
+
+    gtk_builder_add_callback_symbols
+        (builder,
+         "window-destroy", G_CALLBACK(window_destroy),
+         NULL);
+    gtk_builder_connect_signals(builder, win);
 
     g_object_unref(builder);
 #endif
