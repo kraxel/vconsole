@@ -746,8 +746,8 @@ static char recent_xml[] =
 
 /* ------------------------------------------------------------------ */
 
-static char builder_main_xml[] =
-#include "builder-main.h"
+static char main_ui[] =
+#include "main-ui.h"
     "";
 
 /* ------------------------------------------------------------------ */
@@ -842,13 +842,11 @@ static void vconsole_build_recent(struct vconsole_window *win)
 static struct vconsole_window *vconsole_toplevel_create(void)
 {
     struct vconsole_window *win;
-    GtkWidget *vbox;
+    GError *err;
 #if 0
-    GtkWidget *menubar, *toolbar, *item;
+    GtkWidget *vbox, *menubar, *toolbar, *item;
     GtkAccelGroup *accel;
     GtkActionGroup *ag;
-#endif
-    GError *err;
 
     win = g_new0(struct vconsole_window, 1);
     win->toplevel = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -856,13 +854,10 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     gtk_window_set_default_size(GTK_WINDOW(win->toplevel), 800, 600);
     g_signal_connect(G_OBJECT(win->toplevel), "destroy",
 		     G_CALLBACK(destroy), win);
-#if 0
     g_signal_connect(G_OBJECT(win->toplevel), "window-state-event",
 		     G_CALLBACK(window_state_cb), win);
-#endif
 
     /* menu + toolbar */
-#if 0
     win->ui = gtk_ui_manager_new();
     ag = gtk_action_group_new("MenuActions");
     gtk_action_group_add_actions(ag, entries, G_N_ELEMENTS(entries), win);
@@ -878,7 +873,6 @@ static struct vconsole_window *vconsole_toplevel_create(void)
 	g_error_free(err);
 	exit(1);
     }
-#endif
 
     /* main area */
     win->notebook = gtk_notebook_new();
@@ -890,14 +884,26 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     /* Make a vbox and put stuff in */
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
     gtk_container_add(GTK_CONTAINER(win->toplevel), vbox);
-#if 0
     menubar = gtk_ui_manager_get_widget(win->ui, "/MainMenu");
     gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
     toolbar = gtk_ui_manager_get_widget(win->ui, "/ToolBar");
     if (toolbar)
 	gtk_box_pack_start(GTK_BOX(vbox), toolbar, FALSE, FALSE, 0);
-#endif
     gtk_box_pack_start(GTK_BOX(vbox), win->notebook, TRUE, TRUE, 0);
+#else
+    GtkBuilder      *builder;
+
+    win = g_new0(struct vconsole_window, 1);
+
+    builder = gtk_builder_new_from_string(main_ui, -1);
+    gtk_builder_connect_signals(builder, NULL);
+    win->toplevel = GTK_WIDGET(gtk_builder_get_object(builder, "toplevel"));
+    win->notebook = GTK_WIDGET(gtk_builder_get_object(builder, "notebook"));
+    fprintf(stderr, "%s: %p %p\n", __func__,
+            win->toplevel, win->notebook);
+
+    g_object_unref(builder);
+#endif
 
     /* read config */
     err = NULL;
