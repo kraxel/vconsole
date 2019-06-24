@@ -35,6 +35,7 @@
                         <property name="label" translatable="yes">Connect ...</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="action_name">main.ConnectAsk</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                       </object>
@@ -44,6 +45,7 @@
                         <property name="label" translatable="yes">Close _Tab</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="action_name">main.CloseTab</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
                       </object>
@@ -53,6 +55,7 @@
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="action_name">main.CloseApp</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>

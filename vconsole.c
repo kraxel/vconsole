@@ -149,9 +149,9 @@ static int gtk_getstring(GtkWidget *window, char *title, char *message,
 
 /* ------------------------------------------------------------------ */
 
-#if 0
-
-static void menu_cb_connect_ask(GtkAction *action, gpointer userdata)
+static void menu_cb_connect_ask(GSimpleAction *action,
+                                 GVariant      *parameter,
+                                 gpointer       userdata)
 {
     struct vconsole_window *win = userdata;
     char uri[256] = "";
@@ -163,7 +163,11 @@ static void menu_cb_connect_ask(GtkAction *action, gpointer userdata)
         connect_init(win, uri);
 }
 
-static void menu_cb_connect_menu(GtkAction *action, gpointer userdata)
+#if 0
+
+static void menu_cb_connect_menu(GSimpleAction *action,
+                                 GVariant      *parameter,
+                                 gpointer       userdata)
 {
     struct vconsole_window *win = userdata;
     GError *err = NULL;
@@ -181,17 +185,25 @@ static void menu_cb_connect_menu(GtkAction *action, gpointer userdata)
     }
 }
 
-static void menu_cb_close_tab(GtkAction *action, gpointer userdata)
+#endif
+
+static void menu_cb_close_tab(GSimpleAction *action,
+                              GVariant      *parameter,
+                              gpointer       userdata)
 {
     struct vconsole_window *win = userdata;
     domain_close_current_tab(win);
 }
 
-static void menu_cb_close_app(GtkAction *action, gpointer userdata)
+static void menu_cb_close_app(GSimpleAction *action,
+                              GVariant      *parameter,
+                              gpointer       userdata)
 {
     struct vconsole_window *win = userdata;
     gtk_widget_destroy(win->toplevel);
 }
+
+#if 0
 
 static gboolean terminal_font_filter(const PangoFontFamily *family,
                                      const PangoFontFace   *face,
@@ -531,8 +543,11 @@ static void menu_cb_vm_logging(GtkToggleAction *action, gpointer userdata)
 
 /* ------------------------------------------------------------------ */
 
-static const GtkActionEntry entries[] = {
+#endif
+
+static const GActionEntry entries[] = {
     {
+#if 0
         /* --- menu bar --- */
 	.name        = "FileMenu",
 	.label       = "_File",
@@ -551,23 +566,18 @@ static const GtkActionEntry entries[] = {
 	.name        = "ConnectMenu",
 	.label       = "_Recent",
     },{
+#endif
 
         /* --- file menu --- */
 	.name        = "ConnectAsk",
-	.stock_id    = GTK_STOCK_CONNECT,
-	.label       = "_Connect ...",
-	.callback    = G_CALLBACK(menu_cb_connect_ask),
+	.activate    = menu_cb_connect_ask,
     },{
 	.name        = "CloseTab",
-	.stock_id    = GTK_STOCK_CLOSE,
-	.label       = "Close _Tab",
-        .tooltip     = "Close Tab",
-	.callback    = G_CALLBACK(menu_cb_close_tab),
+	.activate    = menu_cb_close_tab,
     },{
 	.name        = "CloseApp",
-	.stock_id    = GTK_STOCK_QUIT,
-	.label       = "_Quit",
-	.callback    = G_CALLBACK(menu_cb_close_app),
+	.activate    = menu_cb_close_app,
+#if 0
     },{
 
         /* --- view menu --- */
@@ -657,8 +667,11 @@ static const GtkActionEntry entries[] = {
         .stock_id    = GTK_STOCK_HELP,
 	.label       = "_Manual page",
 	.callback    = G_CALLBACK(menu_cb_manual),
+#endif
     },
 };
+
+#if 0
 
 static const GtkToggleActionEntry tentries[] = {
     {
@@ -891,7 +904,8 @@ static struct vconsole_window *vconsole_toplevel_create(void)
 	gtk_box_pack_start(GTK_BOX(vbox), toolbar, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), win->notebook, TRUE, TRUE, 0);
 #else
-    GtkBuilder      *builder;
+    GtkBuilder          *builder;
+    GSimpleActionGroup  *ag;
 
     win = g_new0(struct vconsole_window, 1);
 
@@ -904,6 +918,12 @@ static struct vconsole_window *vconsole_toplevel_create(void)
          "window-destroy", G_CALLBACK(window_destroy),
          NULL);
     gtk_builder_connect_signals(builder, win);
+
+    ag = g_simple_action_group_new();
+    g_action_map_add_action_entries(G_ACTION_MAP(ag),
+                                    entries, G_N_ELEMENTS(entries),
+                                    win);
+    gtk_widget_insert_action_group(win->toplevel, "main", G_ACTION_GROUP(ag));
 
     g_object_unref(builder);
 #endif
