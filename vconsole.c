@@ -913,17 +913,23 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     win->toplevel = GTK_WIDGET(gtk_builder_get_object(builder, "toplevel"));
     win->notebook = GTK_WIDGET(gtk_builder_get_object(builder, "notebook"));
 
+    /* signals */
     gtk_builder_add_callback_symbols
         (builder,
          "window-destroy", G_CALLBACK(window_destroy),
          NULL);
     gtk_builder_connect_signals(builder, win);
 
+    /* actions */
     ag = g_simple_action_group_new();
     g_action_map_add_action_entries(G_ACTION_MAP(ag),
                                     entries, G_N_ELEMENTS(entries),
                                     win);
     gtk_widget_insert_action_group(win->toplevel, "main", G_ACTION_GROUP(ag));
+
+    /* accelerators */
+    gtk_accel_map_add_entry("<main>/File/CloseTab", GDK_KEY_w, GDK_CONTROL_MASK);
+    gtk_accel_map_add_entry("<main>/File/CloseApp", GDK_KEY_q, GDK_CONTROL_MASK);
 
     g_object_unref(builder);
 #endif
