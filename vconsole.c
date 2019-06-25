@@ -203,8 +203,6 @@ static void menu_cb_close_app(GSimpleAction *action,
     gtk_widget_destroy(win->toplevel);
 }
 
-#if 0
-
 static gboolean terminal_font_filter(const PangoFontFamily *family,
                                      const PangoFontFace   *face,
                                      gpointer               data)
@@ -212,7 +210,9 @@ static gboolean terminal_font_filter(const PangoFontFamily *family,
     return pango_font_family_is_monospace((PangoFontFamily *) family);
 }
 
-static void menu_cb_config_font(GtkAction *action, void *data)
+static void menu_cb_config_font(GSimpleAction *action,
+                                GVariant      *parameter,
+                                gpointer       data)
 {
     struct vconsole_window *win = data;
     GtkWidget *dialog;
@@ -262,7 +262,9 @@ static int pickcolor(GtkWindow *parent, char *title,
     return rc;
 }
 
-static void menu_cb_config_fg(GtkAction *action, void *data)
+static void menu_cb_config_fg(GSimpleAction *action,
+                              GVariant      *parameter,
+                              gpointer       data)
 {
     struct vconsole_window *win = data;
     GError *err = NULL;
@@ -274,7 +276,9 @@ static void menu_cb_config_fg(GtkAction *action, void *data)
     domain_configure_all_vtes(win);
 }
 
-static void menu_cb_config_bg(GtkAction *action, void *data)
+static void menu_cb_config_bg(GSimpleAction *action,
+                              GVariant      *parameter,
+                              gpointer       data)
 {
     struct vconsole_window *win = data;
     GError *err = NULL;
@@ -286,7 +290,11 @@ static void menu_cb_config_bg(GtkAction *action, void *data)
     domain_configure_all_vtes(win);
 }
 
-static void menu_cb_fullscreen(GtkToggleAction *action, gpointer userdata)
+#if 0
+
+static void menu_cb_fullscreen(GSimpleAction *action,
+                               GVariant      *parameter,
+                               gpointer       userdata)
 {
     struct vconsole_window *win = userdata;
     gboolean active;
@@ -298,6 +306,8 @@ static void menu_cb_fullscreen(GtkToggleAction *action, gpointer userdata)
         gtk_window_unfullscreen(GTK_WINDOW(win->toplevel));
     }
 }
+
+#endif
 
 static struct vconsole_domain *find_guest(struct vconsole_window *win)
 {
@@ -389,7 +399,9 @@ static void run_virsh_edit(struct vconsole_domain *dom)
     }
 }
 
-static void menu_cb_untabify(GtkToggleAction *action, gpointer userdata)
+static void menu_cb_untabify(GSimpleAction *action,
+                             GVariant      *parameter,
+                             gpointer       userdata)
 {
     struct vconsole_window *win = userdata;
     struct vconsole_domain *dom = find_guest(win);
@@ -398,7 +410,9 @@ static void menu_cb_untabify(GtkToggleAction *action, gpointer userdata)
         domain_untabify(dom);
 }
 
-static void menu_cb_vm_edit(GtkAction *action, void *data)
+static void menu_cb_vm_edit(GSimpleAction *action,
+                            GVariant      *parameter,
+                            gpointer       data)
 {
     struct vconsole_window *win = data;
     struct vconsole_domain *dom = find_guest(win);
@@ -407,7 +421,9 @@ static void menu_cb_vm_edit(GtkAction *action, void *data)
         run_virsh_edit(dom);
 }
 
-static void menu_cb_vm_gfx(GtkAction *action, void *data)
+static void menu_cb_vm_gfx(GSimpleAction *action,
+                           GVariant      *parameter,
+                           gpointer       data)
 {
     struct vconsole_window *win = data;
     struct vconsole_domain *dom = find_guest(win);
@@ -416,7 +432,9 @@ static void menu_cb_vm_gfx(GtkAction *action, void *data)
         run_virt_viewer(dom, true);
 }
 
-static void menu_cb_vm_run(GtkAction *action, void *data)
+static void menu_cb_vm_run(GSimpleAction *action,
+                           GVariant      *parameter,
+                           gpointer       data)
 {
     struct vconsole_window *win = data;
     struct vconsole_domain *dom = find_guest(win);
@@ -425,7 +443,9 @@ static void menu_cb_vm_run(GtkAction *action, void *data)
         domain_start(dom);
 }
 
-static void menu_cb_vm_run_gfx(GtkAction *action, void *data)
+static void menu_cb_vm_run_gfx(GSimpleAction *action,
+                               GVariant      *parameter,
+                               gpointer       data)
 {
     struct vconsole_window *win = data;
     struct vconsole_domain *dom = find_guest(win);
@@ -436,7 +456,9 @@ static void menu_cb_vm_run_gfx(GtkAction *action, void *data)
     }
 }
 
-static void menu_cb_vm_pause(GtkAction *action, void *data)
+static void menu_cb_vm_pause(GSimpleAction *action,
+                             GVariant      *parameter,
+                             gpointer       data)
 {
     struct vconsole_window *win = data;
     struct vconsole_domain *dom = find_guest(win);
@@ -445,7 +467,9 @@ static void menu_cb_vm_pause(GtkAction *action, void *data)
         domain_pause(dom);
 }
 
-static void menu_cb_vm_save(GtkAction *action, void *data)
+static void menu_cb_vm_save(GSimpleAction *action,
+                            GVariant      *parameter,
+                            gpointer       data)
 {
     struct vconsole_window *win = data;
     struct vconsole_domain *dom = find_guest(win);
@@ -454,7 +478,9 @@ static void menu_cb_vm_save(GtkAction *action, void *data)
         domain_save(dom);
 }
 
-static void menu_cb_vm_reboot(GtkAction *action, void *data)
+static void menu_cb_vm_reboot(GSimpleAction *action,
+                              GVariant      *parameter,
+                              gpointer       data)
 {
     struct vconsole_window *win = data;
     struct vconsole_domain *dom = find_guest(win);
@@ -463,7 +489,9 @@ static void menu_cb_vm_reboot(GtkAction *action, void *data)
         domain_reboot(dom);
 }
 
-static void menu_cb_vm_shutdown(GtkAction *action, void *data)
+static void menu_cb_vm_shutdown(GSimpleAction *action,
+                                GVariant      *parameter,
+                                gpointer       data)
 {
     struct vconsole_window *win = data;
     struct vconsole_domain *dom = find_guest(win);
@@ -472,7 +500,9 @@ static void menu_cb_vm_shutdown(GtkAction *action, void *data)
         domain_shutdown(dom);
 }
 
-static void menu_cb_vm_reset(GtkAction *action, void *data)
+static void menu_cb_vm_reset(GSimpleAction *action,
+                             GVariant      *parameter,
+                             gpointer       data)
 {
     struct vconsole_window *win = data;
     struct vconsole_domain *dom = find_guest(win);
@@ -481,7 +511,9 @@ static void menu_cb_vm_reset(GtkAction *action, void *data)
         domain_reset(dom);
 }
 
-static void menu_cb_vm_kill(GtkAction *action, void *data)
+static void menu_cb_vm_kill(GSimpleAction *action,
+                            GVariant      *parameter,
+                            gpointer       data)
 {
     struct vconsole_window *win = data;
     struct vconsole_domain *dom = find_guest(win);
@@ -490,7 +522,9 @@ static void menu_cb_vm_kill(GtkAction *action, void *data)
         domain_kill(dom);
 }
 
-static void menu_cb_about(GtkAction *action, gpointer userdata)
+static void menu_cb_about(GSimpleAction *action,
+                          GVariant      *parameter,
+                          gpointer       userdata)
 {
     static char *comments = "virtual machine console";
     static char *copyright = "(c) 2012 Gerd Hoffmann";
@@ -505,7 +539,9 @@ static void menu_cb_about(GtkAction *action, gpointer userdata)
                           NULL);
 }
 
-static void menu_cb_manual(GtkAction *action, gpointer userdata)
+static void menu_cb_manual(GSimpleAction *action,
+                           GVariant      *parameter,
+                           gpointer       userdata)
 {
     if (fork() <= 0) {
         /* parent */
@@ -520,6 +556,8 @@ static void menu_cb_manual(GtkAction *action, gpointer userdata)
 }
 
 /* ------------------------------------------------------------------ */
+
+#if 0
 
 static void menu_cb_blink_cursor(GtkToggleAction *action, gpointer userdata)
 {
@@ -541,33 +579,12 @@ static void menu_cb_vm_logging(GtkToggleAction *action, gpointer userdata)
     config_write();
 }
 
-/* ------------------------------------------------------------------ */
-
 #endif
+
+/* ------------------------------------------------------------------ */
 
 static const GActionEntry entries[] = {
     {
-#if 0
-        /* --- menu bar --- */
-	.name        = "FileMenu",
-	.label       = "_File",
-    },{
-	.name        = "ViewMenu",
-	.label       = "_View",
-    },{
-	.name        = "GuestMenu",
-	.label       = "_Guest",
-    },{
-	.name        = "HelpMenu",
-	.label       = "_Help",
-    },{
-
-        /* --- submenus --- */
-	.name        = "ConnectMenu",
-	.label       = "_Recent",
-    },{
-#endif
-
         /* --- file menu --- */
 	.name        = "ConnectAsk",
 	.activate    = menu_cb_connect_ask,
@@ -577,97 +594,60 @@ static const GActionEntry entries[] = {
     },{
 	.name        = "CloseApp",
 	.activate    = menu_cb_close_app,
-#if 0
     },{
 
         /* --- view menu --- */
 	.name        = "TerminalFont",
-	.stock_id    = GTK_STOCK_SELECT_FONT,
-	.label       = "Terminal _font ...",
-	.callback    = G_CALLBACK(menu_cb_config_font),
+	.activate    = menu_cb_config_font,
     },{
 	.name        = "TerminalForeground",
-	.stock_id    = GTK_STOCK_SELECT_COLOR,
-	.label       = "Terminal _text color ...",
-	.callback    = G_CALLBACK(menu_cb_config_fg),
+	.activate    = menu_cb_config_fg,
     },{
 	.name        = "TerminalBackground",
-	.label       = "Terminal _background ...",
-	.callback    = G_CALLBACK(menu_cb_config_bg),
+	.activate    = menu_cb_config_bg,
     },{
 	.name        = "Untabify",
-	.label       = "_Detach Tab",
-	.callback    = G_CALLBACK(menu_cb_untabify),
+	.activate    = menu_cb_untabify,
     },{
 
         /* --- guest menu --- */
 	.name        = "GuestEdit",
-	.label       = "Change guest configuration",
-	.callback    = G_CALLBACK(menu_cb_vm_edit),
+	.activate    = menu_cb_vm_edit,
     },{
 	.name        = "GuestGfx",
-	.label       = "Show graphic console",
-	.callback    = G_CALLBACK(menu_cb_vm_gfx),
+	.activate    = menu_cb_vm_gfx,
     },{
 	.name        = "GuestRun",
-	.stock_id    = GTK_STOCK_MEDIA_PLAY,
-	.label       = "Run",
-        .tooltip     = "Run guest",
-	.callback    = G_CALLBACK(menu_cb_vm_run),
+	.activate    = menu_cb_vm_run,
     },{
 	.name        = "GuestRunGfx",
-	.stock_id    = "window-new",
-	.label       = "Run with graphic console",
-	.tooltip     = "Run guest and show graphic console",
-	.callback    = G_CALLBACK(menu_cb_vm_run_gfx),
+	.activate    = menu_cb_vm_run_gfx,
     },{
 	.name        = "GuestPause",
-	.stock_id    = GTK_STOCK_MEDIA_PAUSE,
-	.label       = "Pause",
-        .tooltip     = "Pause guest",
-	.callback    = G_CALLBACK(menu_cb_vm_pause),
+	.activate    = menu_cb_vm_pause,
     },{
 	.name        = "GuestSave",
-        .stock_id    = GTK_STOCK_SAVE,
-	.label       = "Save to disk",
-        .tooltip     = "Save guest to disk",
-	.accelerator = "", /* don't catch Ctrl-S */
-	.callback    = G_CALLBACK(menu_cb_vm_save),
+	.activate    = menu_cb_vm_save,
     },{
 	.name        = "GuestReboot",
-	.stock_id    = GTK_STOCK_REFRESH,
-	.label       = "Reboot",
-        .tooltip     = "Reboot guest",
-	.callback    = G_CALLBACK(menu_cb_vm_reboot),
+	.activate    = menu_cb_vm_reboot,
     },{
 	.name        = "GuestShutdown",
-	.stock_id    = GTK_STOCK_MEDIA_STOP,
-	.label       = "Shutdown",
-        .tooltip     = "Shutdown guest",
-	.callback    = G_CALLBACK(menu_cb_vm_shutdown),
+	.activate    = menu_cb_vm_shutdown,
     },{
 	.name        = "GuestReset",
-	.label       = "Reset",
-        .tooltip     = "Reset guest",
-	.callback    = G_CALLBACK(menu_cb_vm_reset),
+	.activate    = menu_cb_vm_reset,
     },{
 	.name        = "GuestKill",
-	.label       = "Destroy",
-        .tooltip     = "Destroy guest",
-	.callback    = G_CALLBACK(menu_cb_vm_kill),
+	.activate    = menu_cb_vm_kill,
 
     },{
         /* --- help menu --- */
 	.name        = "About",
-        .stock_id    = GTK_STOCK_ABOUT,
-	.label       = "_About ...",
-	.callback    = G_CALLBACK(menu_cb_about),
+	.activate    = menu_cb_about,
     },{
 	.name        = "Manual",
-        .stock_id    = GTK_STOCK_HELP,
-	.label       = "_Manual page",
-	.callback    = G_CALLBACK(menu_cb_manual),
-#endif
+	.activate    = menu_cb_manual,
     },
 };
 
