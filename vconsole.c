@@ -927,10 +927,6 @@ static struct vconsole_window *vconsole_toplevel_create(void)
                                     win);
     gtk_widget_insert_action_group(win->toplevel, "main", G_ACTION_GROUP(ag));
 
-    /* accelerators */
-    gtk_accel_map_add_entry("<main>/File/CloseTab", GDK_KEY_w, GDK_CONTROL_MASK);
-    gtk_accel_map_add_entry("<main>/File/CloseApp", GDK_KEY_q, GDK_CONTROL_MASK);
-
     g_object_unref(builder);
 #endif
 

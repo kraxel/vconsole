@@ -50,10 +50,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="action_name">main.CloseTab</property>
-                        <property name="accel_path">&lt;main&gt;/File/CloseTab</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
-                        <property name="accel_group">main</property>
                       </object>
                     </child>
                     <child>
