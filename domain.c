@@ -554,6 +554,13 @@ void domain_kill(struct vconsole_domain *dom)
     virDomainFree(d);
 }
 
+void domain_undefine(struct vconsole_domain *dom)
+{
+    virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
+
+    virDomainUndefineFlags(d, VIR_DOMAIN_UNDEFINE_NVRAM);
+}
+
 void domain_free(struct vconsole_domain *dom)
 {
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);

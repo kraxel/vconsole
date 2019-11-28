@@ -131,6 +131,7 @@ void domain_reboot(struct vconsole_domain *dom);
 void domain_shutdown(struct vconsole_domain *dom);
 void domain_reset(struct vconsole_domain *dom);
 void domain_kill(struct vconsole_domain *dom);
+void domain_undefine(struct vconsole_domain *dom);
 
 void domain_free(struct vconsole_domain *dom);
 void domain_update(struct vconsole_connect *conn,

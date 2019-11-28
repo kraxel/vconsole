@@ -147,6 +147,46 @@ static int gtk_getstring(GtkWidget *window, char *title, char *message,
     return retval;
 }
 
+static int gtk_yesno(GtkWidget *window, char *title, char *message)
+{
+    GtkWidget *dialog, *label, *vbox;
+    bool retval;
+
+    /* Create the widgets */
+    dialog = gtk_dialog_new_with_buttons(title,
+                                         GTK_WINDOW(window),
+                                         GTK_DIALOG_DESTROY_WITH_PARENT,
+                                         "_Yes", GTK_RESPONSE_ACCEPT,
+                                         "_No",  GTK_RESPONSE_REJECT,
+                                         NULL);
+    gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_REJECT);
+
+    label = gtk_label_new(message);
+#if GTK_CHECK_VERSION(3,16,0)
+    gtk_label_set_xalign(GTK_LABEL(label), 0);
+    gtk_label_set_yalign(GTK_LABEL(label), 0.5);
+#else
+    gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+#endif
+
+    vbox = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+    gtk_container_add(GTK_CONTAINER(vbox), label);
+    gtk_box_set_spacing(GTK_BOX(vbox), 10);
+
+    /* show and wait for response */
+    gtk_widget_show_all(dialog);
+    switch (gtk_dialog_run(GTK_DIALOG(dialog))) {
+    case GTK_RESPONSE_ACCEPT:
+        retval = true;
+        break;
+    default:
+        retval = false;
+        break;
+    }
+    gtk_widget_destroy(dialog);
+    return retval;
+}
+
 /* ------------------------------------------------------------------ */
 
 static void menu_cb_connect_ask(GSimpleAction *action,
@@ -421,6 +461,25 @@ static void menu_cb_vm_edit(GSimpleAction *action,
         run_virsh_edit(dom);
 }
 
+static void menu_cb_vm_undefine(GSimpleAction *action,
+                                GVariant      *parameter,
+                                gpointer       data)
+{
+    struct vconsole_window *win = data;
+    struct vconsole_domain *dom = find_guest(win);
+    char *msg;
+    bool undefine;
+
+    if (dom) {
+        msg = g_strdup_printf("Really delete domain\n%s?",
+                              dom->name);
+        undefine = gtk_yesno(win->toplevel, "Please confirm", msg);
+        g_free(msg);
+        if (undefine)
+            domain_undefine(dom);
+    }
+}
+
 static void menu_cb_vm_gfx(GSimpleAction *action,
                            GVariant      *parameter,
                            gpointer       data)
@@ -613,6 +672,9 @@ static const GActionEntry entries[] = {
         /* --- guest menu --- */
 	.name        = "GuestEdit",
 	.activate    = menu_cb_vm_edit,
+    },{
+	.name        = "GuestUndefine",
+	.activate    = menu_cb_vm_undefine,
     },{
 	.name        = "GuestGfx",
 	.activate    = menu_cb_vm_gfx,

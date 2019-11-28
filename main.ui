@@ -179,6 +179,16 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem">
+                        <property name="label" translatable="yes">Remove guest configuration</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="action_name">main.GuestUndefine</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem">
                         <property name="label" translatable="yes">Show _graphic console</property>
                         <property name="can_focus">False</property>
                         <property name="action_name">main.GuestGfx</property>
