@@ -328,7 +328,7 @@
                 <property name="action_name">main.GuestRunGfx</property>
                 <property name="label" translatable="yes">run-gfx</property>
                 <property name="use_underline">True</property>
-                <property name="stock_id">gtk-window-new</property>
+                <property name="icon_name">window-new</property>
               </object>
               <packing>
                 <property name="expand">False</property>
