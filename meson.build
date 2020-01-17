@@ -44,6 +44,9 @@ executable('vconsole',
            dependencies : vconsole_deps,
            install      : true)
 install_man('vconsole.1')
+install_data('vconsole.desktop',
+             install_dir : 'share/applications')
+
 
 executable('vpublish',
            sources      : vpublish_srcs,
