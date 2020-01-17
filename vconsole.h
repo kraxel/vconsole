@@ -55,6 +55,7 @@ struct vconsole_window {
     GtkWidget                 *notebook;
     GtkWidget                 *recent;
     GtkCheckMenuItem          *guestlog;
+    GtkCheckMenuItem          *blinking;
     GtkUIManager              *ui;
 
     /* recent hosts */

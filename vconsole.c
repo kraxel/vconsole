@@ -590,19 +590,17 @@ static void menu_cb_manual(GSimpleAction *action,
 
 /* ------------------------------------------------------------------ */
 
-#if 0
-
-static void menu_cb_blink_cursor(GtkToggleAction *action, gpointer userdata)
+static void menu_cb_blink_cursor(GSimpleAction *action,
+                                 GVariant      *parameter,
+                                 gpointer       userdata)
 {
     struct vconsole_window *win = userdata;
 
-    win->tty_blink = gtk_toggle_action_get_active(action);
+    win->tty_blink = gtk_check_menu_item_get_active(win->blinking);
     domain_configure_all_vtes(win);
     g_key_file_set_boolean(config, "tty", "blink", win->tty_blink);
     config_write();
 }
-
-#endif
 
 static void menu_cb_vm_logging(GSimpleAction *action,
                                GVariant      *parameter,
@@ -640,6 +638,9 @@ static const GActionEntry entries[] = {
     },{
 	.name        = "TerminalBackground",
 	.activate    = menu_cb_config_bg,
+    },{
+	.name        = "TerminalBlink",
+	.activate    = menu_cb_blink_cursor,
     },{
 	.name        = "Untabify",
 	.activate    = menu_cb_untabify,
@@ -874,6 +875,7 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     win->notebook = GTK_WIDGET(gtk_builder_get_object(builder, "notebook"));
     win->recent   = GTK_WIDGET(gtk_builder_get_object(builder, "recent"));
     win->guestlog = GTK_CHECK_MENU_ITEM(gtk_builder_get_object(builder, "guestlog"));
+    win->blinking = GTK_CHECK_MENU_ITEM(gtk_builder_get_object(builder, "blinking"));
 
     /* signals */
     gtk_builder_add_callback_symbols
@@ -913,10 +915,7 @@ static struct vconsole_window *vconsole_toplevel_create(void)
         win->tty_bg = "black";
 
     /* apply config */
-#if 0
-    item = gtk_ui_manager_get_widget(win->ui, "/MainMenu/ViewMenu/TerminalBlink");
-    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), win->tty_blink);
-#endif
+    gtk_check_menu_item_set_active(win->blinking, win->tty_blink);
     gtk_check_menu_item_set_active(win->guestlog, win->vm_logging);
 
     return win;
