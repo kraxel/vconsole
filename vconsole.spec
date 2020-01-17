@@ -13,8 +13,6 @@ BuildRequires: pkgconfig(gthread-2.0)
 BuildRequires: pkgconfig(gtk+-3.0)
 BuildRequires: pkgconfig(libvirt)
 BuildRequires: pkgconfig(libxml-2.0)
-BuildRequires: pkgconfig(avahi-client)
-BuildRequires: pkgconfig(avahi-glib)
 BuildRequires: pkgconfig(vte-2.91)
 
 %description
