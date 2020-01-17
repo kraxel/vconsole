@@ -323,25 +323,6 @@ static void menu_cb_config_bg(GSimpleAction *action,
     domain_configure_all_vtes(win);
 }
 
-#if 0
-
-static void menu_cb_fullscreen(GSimpleAction *action,
-                               GVariant      *parameter,
-                               gpointer       userdata)
-{
-    struct vconsole_window *win = userdata;
-    gboolean active;
-
-    active = gtk_toggle_action_get_active(action);
-    if (active) {
-        gtk_window_fullscreen(GTK_WINDOW(win->toplevel));
-    } else {
-        gtk_window_unfullscreen(GTK_WINDOW(win->toplevel));
-    }
-}
-
-#endif
-
 static struct vconsole_domain *find_guest(struct vconsole_window *win)
 {
     struct vconsole_domain *dom = NULL;
@@ -804,32 +785,6 @@ static char main_ui[] =
     "";
 
 /* ------------------------------------------------------------------ */
-
-#if 0
-
-static gboolean window_state_cb(GtkWidget *widget, GdkEventWindowState *event,
-				gpointer userdata)
-{
-    struct vconsole_window *win = userdata;
-    GtkWidget *fs, *tb;
-
-    if (!(event->changed_mask & GDK_WINDOW_STATE_FULLSCREEN))
-        return TRUE;
-    win->fullscreen = event->new_window_state & GDK_WINDOW_STATE_FULLSCREEN;
-
-    fs = gtk_ui_manager_get_widget(win->ui, "/MainMenu/ViewMenu/FullScreen");
-    tb = gtk_ui_manager_get_widget(win->ui, "/ToolBar");
-
-    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(fs), win->fullscreen);
-    if (win->fullscreen) {
-        gtk_widget_hide(tb);
-    } else {
-        gtk_widget_show(tb);
-    }
-    return TRUE;
-}
-
-#endif
 
 static void window_destroy(GtkWidget *widget, gpointer data)
 {

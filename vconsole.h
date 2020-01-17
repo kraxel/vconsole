@@ -56,7 +56,6 @@ struct vconsole_window {
     GtkWidget                 *recent;
     GtkCheckMenuItem          *guestlog;
     GtkUIManager              *ui;
-    gboolean                  fullscreen;
 
     /* recent hosts */
     GtkActionGroup            *r_ag;
