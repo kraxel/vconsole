@@ -693,92 +693,6 @@ static const GActionEntry entries[] = {
     },
 };
 
-#if 0
-
-static const GtkToggleActionEntry tentries[] = {
-    {
-	.name        = "TerminalBlink",
-	.label       = "Blinking cursor",
-	.callback    = G_CALLBACK(menu_cb_blink_cursor),
-    },{
-	.name        = "FullScreen",
-        .stock_id    = GTK_STOCK_FULLSCREEN,
-	.label       = "_Fullscreen",
-	.accelerator = "F11",
-	.callback    = G_CALLBACK(menu_cb_fullscreen),
-    },{
-	.name        = "GuestLogging",
-	.label       = "Log to file",
-	.callback    = G_CALLBACK(menu_cb_vm_logging),
-    }
-};
-
-static char ui_xml[] =
-"<ui>\n"
-"  <menubar name='MainMenu'>\n"
-"    <menu action='FileMenu'>\n"
-"      <menuitem action='ConnectAsk'/>\n"
-"      <menu action='ConnectMenu'>\n"
-"      </menu>\n"
-"      <separator/>\n"
-"      <menuitem action='CloseTab'/>\n"
-"      <menuitem action='CloseApp'/>\n"
-"    </menu>\n"
-"    <menu action='ViewMenu'>\n"
-"      <menuitem action='TerminalFont'/>\n"
-"      <menuitem action='TerminalForeground'/>\n"
-"      <menuitem action='TerminalBackground'/>\n"
-"      <menuitem action='TerminalBlink'/>\n"
-"      <separator/>\n"
-"      <menuitem action='FullScreen'/>\n"
-"      <separator/>\n"
-"      <menuitem action='Untabify'/>\n"
-"    </menu>\n"
-"    <menu action='GuestMenu'>\n"
-"      <menuitem action='GuestLogging'/>\n"
-"      <separator/>\n"
-"      <menuitem action='GuestEdit'/>\n"
-"      <separator/>\n"
-"      <menuitem action='GuestGfx'/>\n"
-"      <separator/>\n"
-"      <menuitem action='GuestRun'/>\n"
-"      <menuitem action='GuestPause'/>\n"
-"      <menuitem action='GuestSave'/>\n"
-"      <menuitem action='GuestReboot'/>\n"
-"      <menuitem action='GuestShutdown'/>\n"
-"      <separator/>\n"
-"      <menuitem action='GuestReset'/>\n"
-"      <menuitem action='GuestKill'/>\n"
-"    </menu>\n"
-"    <menu action='HelpMenu'>\n"
-"      <menuitem action='Manual'/>\n"
-"      <menuitem action='About'/>\n"
-"    </menu>\n"
-"  </menubar>\n"
-"  <toolbar action='ToolBar'>"
-"    <toolitem action='GuestRunGfx'/>\n"
-"    <separator/>\n"
-"    <toolitem action='GuestRun'/>\n"
-"    <toolitem action='GuestPause'/>\n"
-"    <toolitem action='GuestSave'/>\n"
-"    <toolitem action='GuestReboot'/>\n"
-"    <toolitem action='GuestShutdown'/>\n"
-"  </toolbar>\n"
-"</ui>\n";
-
-static char recent_xml[] =
-"<ui>\n"
-"  <menubar name='MainMenu'>\n"
-"    <menu action='FileMenu'>\n"
-"      <menu action='ConnectMenu'>\n"
-"%s"
-"      </menu>\n"
-"    </menu>\n"
-"  </menubar>\n"
-"</ui>\n";
-
-#endif
-
 /* ------------------------------------------------------------------ */
 
 static char main_ui[] =
@@ -816,57 +730,9 @@ static void vconsole_build_recent(struct vconsole_window *win)
 static struct vconsole_window *vconsole_toplevel_create(void)
 {
     struct vconsole_window *win;
-    GError *err;
-#if 0
-    GtkWidget *vbox, *menubar, *toolbar, *item;
-    GtkAccelGroup *accel;
-    GtkActionGroup *ag;
-
-    win = g_new0(struct vconsole_window, 1);
-    win->toplevel = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(win->toplevel), APPNAME);
-    gtk_window_set_default_size(GTK_WINDOW(win->toplevel), 800, 600);
-    g_signal_connect(G_OBJECT(win->toplevel), "destroy",
-		     G_CALLBACK(destroy), win);
-    g_signal_connect(G_OBJECT(win->toplevel), "window-state-event",
-		     G_CALLBACK(window_state_cb), win);
-
-    /* menu + toolbar */
-    win->ui = gtk_ui_manager_new();
-    ag = gtk_action_group_new("MenuActions");
-    gtk_action_group_add_actions(ag, entries, G_N_ELEMENTS(entries), win);
-    gtk_action_group_add_toggle_actions(ag, tentries,
-					G_N_ELEMENTS(tentries), win);
-    gtk_ui_manager_insert_action_group(win->ui, ag, 0);
-    accel = gtk_ui_manager_get_accel_group(win->ui);
-    gtk_window_add_accel_group(GTK_WINDOW(win->toplevel), accel);
-
-    err = NULL;
-    if (!gtk_ui_manager_add_ui_from_string(win->ui, ui_xml, -1, &err)) {
-	g_message("building menus failed: %s", err->message);
-	g_error_free(err);
-	exit(1);
-    }
-
-    /* main area */
-    win->notebook = gtk_notebook_new();
-    gtk_notebook_set_tab_pos(GTK_NOTEBOOK(win->notebook), GTK_POS_TOP);
-    gtk_notebook_set_show_tabs(GTK_NOTEBOOK(win->notebook), TRUE);
-    gtk_notebook_set_scrollable(GTK_NOTEBOOK(win->notebook), TRUE);
-    gtk_notebook_popup_enable(GTK_NOTEBOOK(win->notebook));
-
-    /* Make a vbox and put stuff in */
-    vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 1);
-    gtk_container_add(GTK_CONTAINER(win->toplevel), vbox);
-    menubar = gtk_ui_manager_get_widget(win->ui, "/MainMenu");
-    gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
-    toolbar = gtk_ui_manager_get_widget(win->ui, "/ToolBar");
-    if (toolbar)
-	gtk_box_pack_start(GTK_BOX(vbox), toolbar, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(vbox), win->notebook, TRUE, TRUE, 0);
-#else
-    GtkBuilder          *builder;
     GSimpleActionGroup  *ag;
+    GtkBuilder *builder;
+    GError *err;
 
     win = g_new0(struct vconsole_window, 1);
 
@@ -892,7 +758,6 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     gtk_widget_insert_action_group(win->toplevel, "main", G_ACTION_GROUP(ag));
 
     g_object_unref(builder);
-#endif
 
     /* read config */
     err = NULL;
