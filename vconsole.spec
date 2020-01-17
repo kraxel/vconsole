@@ -7,7 +7,7 @@ Group:        Applications/System
 URL:          http://www.kraxel.org/blog/linux/%{name}/
 Source:       http://www.kraxel.org/releases/%{name}/%{name}-%{version}.tar.gz
 
-BuildRequires: gcc
+BuildRequires: gcc meson ninja-build
 BuildRequires: pkgconfig(glib-2.0)
 BuildRequires: pkgconfig(gthread-2.0)
 BuildRequires: pkgconfig(gtk+-3.0)
@@ -30,10 +30,12 @@ Publish virtual machine gfx console (vnc) via avahi.
 
 %build
 export CFLAGS="%{optflags}"
-make prefix=/usr
+meson --prefix="%{_prefix}" build-rpm
+ninja-build -C build-rpm
 
 %install
-make prefix=/usr DESTDIR=%{buildroot} STRIP="" install
+export DESTDIR="%{buildroot}"
+ninja-build -C build-rpm install
 
 %files
 %{_bindir}/vconsole
@@ -47,4 +49,3 @@ make prefix=/usr DESTDIR=%{buildroot} STRIP="" install
 %changelog
 * Thu Jun 01 2017 Gerd Hoffmann <kraxel@redhat.com> 0.8-1
 - new package built with tito
-
