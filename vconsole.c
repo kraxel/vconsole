@@ -203,29 +203,22 @@ static void menu_cb_connect_ask(GSimpleAction *action,
         connect_init(win, uri);
 }
 
-#if 0
-
-static void menu_cb_connect_menu(GSimpleAction *action,
-                                 GVariant      *parameter,
-                                 gpointer       userdata)
+static void menu_cb_connect_menu(GtkMenuItem *item,
+                                 gpointer userdata)
 {
     struct vconsole_window *win = userdata;
     GError *err = NULL;
-    char name[128];
+    const char *name;
     char *uri;
 
-    if (1 != sscanf(gtk_action_get_name(action), "ConnectMenu_%127s", name))
-	return;
-    if (debug)
-        fprintf(stderr, "%s: %s\n", __func__, name);
+    name = gtk_menu_item_get_label(item);
     uri = g_key_file_get_string(config, "connections", name, &err);
+    fprintf(stderr, "%s: %s -> %s\n", __func__, name, uri);
     if (uri) {
         connect_init(win, uri);
         g_free(uri);
     }
 }
-
-#endif
 
 static void menu_cb_close_tab(GSimpleAction *action,
                               GVariant      *parameter,
@@ -838,61 +831,26 @@ static void window_destroy(GtkWidget *widget, gpointer data)
     gtk_main_quit();
 }
 
-#if 0
-
 static void vconsole_build_recent(struct vconsole_window *win)
 {
     GError *err = NULL;
-    GtkActionEntry entry;
-    char *xml, *h, *entries = NULL;
-    gchar **keys, *action;
+    GtkWidget *item;
+    gchar **keys;
     gsize i, nkeys = 0;
-
-    /* cleanup */
-    if (win->r_id) {
-	gtk_ui_manager_remove_ui(win->ui, win->r_id);
-	win->r_id = 0;
-    }
-    if (win->r_ag) {
-	gtk_ui_manager_remove_action_group(win->ui, win->r_ag);
-	g_object_unref(win->r_ag);
-	win->r_ag = NULL;
-    }
-
-    /* start */
-    win->r_ag = gtk_action_group_new("RecentActions");
 
     /* add entries */
     keys = g_key_file_get_keys(config, "connections", &nkeys, &err);
     for (i = 0; i < nkeys; i++) {
-        action = g_strdup_printf("ConnectMenu_%s", keys[i]);
-        memset(&entry, 0, sizeof(entry));
-        entry.callback = G_CALLBACK(menu_cb_connect_menu);
-        entry.name = action;
-        entry.label = keys[i];
-        gtk_action_group_add_actions(win->r_ag, &entry, 1, win);
-        h = entries;
-        entries = g_strdup_printf("%s        <menuitem action='%s'/>\n",
-                                  h ? h : "", action);
-        g_free(h);
-        g_free(action);
+        fprintf(stderr, "%s: %s\n", __func__, keys[i]);
+        item = gtk_menu_item_new_with_label(keys[i]);
+        gtk_menu_shell_append(GTK_MENU_SHELL(win->recent), item);
+        g_signal_connect(item, "activate",
+                         G_CALLBACK(menu_cb_connect_menu), win);
     }
     g_strfreev(keys);
 
-    /* finish */
-    xml = g_strdup_printf(recent_xml, entries ? entries : "");
-    if (debug)
-        fprintf(stderr, "---\n%s---\n", xml);
-    gtk_ui_manager_insert_action_group(win->ui, win->r_ag, 1);
-    win->r_id = gtk_ui_manager_add_ui_from_string(win->ui, xml, -1, &err);
-    if (!win->r_id) {
-	g_message("building menu failed: %s", err->message);
-	g_error_free(err);
-    }
-    g_free(xml);
+    gtk_widget_show_all(win->recent);
 }
-
-#endif
 
 static struct vconsole_window *vconsole_toplevel_create(void)
 {
@@ -954,6 +912,7 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     builder = gtk_builder_new_from_string(main_ui, -1);
     win->toplevel = GTK_WIDGET(gtk_builder_get_object(builder, "toplevel"));
     win->notebook = GTK_WIDGET(gtk_builder_get_object(builder, "notebook"));
+    win->recent   = GTK_WIDGET(gtk_builder_get_object(builder, "recent"));
 
     /* signals */
     gtk_builder_add_callback_symbols
@@ -1268,9 +1227,7 @@ main(int argc, char *argv[])
 
     if (uri)
         connect_init(win, uri);
-#if 0
     vconsole_build_recent(win);
-#endif
 
     g_timeout_add(10 * 1000, vconsole_update, win);
 

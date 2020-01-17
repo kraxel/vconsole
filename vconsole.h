@@ -53,6 +53,7 @@ struct vconsole_window {
     /* toplevel window */
     GtkWidget                 *toplevel;
     GtkWidget                 *notebook;
+    GtkWidget                 *recent;
     GtkUIManager              *ui;
     gboolean                  fullscreen;
 
