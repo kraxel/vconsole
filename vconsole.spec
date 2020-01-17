@@ -18,11 +18,6 @@ BuildRequires: pkgconfig(vte-2.91)
 %description
 Virtual machine serial console manager
 
-%package -n vpublish
-Summary: Virtual machine gfx console publisher
-%description -n vpublish
-Publish virtual machine gfx console (vnc) via avahi.
-
 %prep
 %setup -q
 
@@ -39,10 +34,6 @@ ninja-build -C build-rpm install
 %{_bindir}/vconsole
 %{_mandir}/man1/vconsole.1*
 /usr/share/applications/vconsole.desktop
-
-%files -n vpublish
-%{_bindir}/vpublish
-%{_unitdir}/vpublish.service
 
 %changelog
 * Thu Jun 01 2017 Gerd Hoffmann <kraxel@redhat.com> 0.8-1

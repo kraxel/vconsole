@@ -16,8 +16,8 @@ gtk3_dep         = dependency('gtk+-3.0')
 vte_dep          = dependency('vte-2.91')
 libvirt_dep      = dependency('libvirt')
 libxml_dep       = dependency('libxml-2.0')
-avahi_client_dep = dependency('avahi-client')
-avahi_glib_dep   = dependency('avahi-glib')
+avahi_client_dep = dependency('avahi-client', required : false)
+avahi_glib_dep   = dependency('avahi-glib', required : false)
 
 # finish & write configuration
 configure_file(output : 'config.h', configuration : config)
@@ -47,8 +47,9 @@ install_man('vconsole.1')
 install_data('vconsole.desktop',
              install_dir : 'share/applications')
 
-
-executable('vpublish',
-           sources      : vpublish_srcs,
-           dependencies : vpublish_deps,
-           install      : true)
+if avahi_glib_dep.found()
+    executable('vpublish',
+               sources      : vpublish_srcs,
+               dependencies : vpublish_deps,
+               install      : true)
+endif
