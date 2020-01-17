@@ -621,17 +621,19 @@ static void menu_cb_blink_cursor(GtkToggleAction *action, gpointer userdata)
     config_write();
 }
 
-static void menu_cb_vm_logging(GtkToggleAction *action, gpointer userdata)
+#endif
+
+static void menu_cb_vm_logging(GSimpleAction *action,
+                               GVariant      *parameter,
+                               gpointer       userdata)
 {
     struct vconsole_window *win = userdata;
 
-    win->vm_logging = gtk_toggle_action_get_active(action);
+    win->vm_logging = gtk_check_menu_item_get_active(win->guestlog);
     domain_configure_all_logging(win);
     g_key_file_set_boolean(config, "vm", "logging", win->vm_logging);
     config_write();
 }
-
-#endif
 
 /* ------------------------------------------------------------------ */
 
@@ -663,6 +665,9 @@ static const GActionEntry entries[] = {
     },{
 
         /* --- guest menu --- */
+	.name        = "GuestLogging",
+	.activate    = menu_cb_vm_logging,
+    },{
 	.name        = "GuestEdit",
 	.activate    = menu_cb_vm_edit,
     },{
@@ -913,6 +918,7 @@ static struct vconsole_window *vconsole_toplevel_create(void)
     win->toplevel = GTK_WIDGET(gtk_builder_get_object(builder, "toplevel"));
     win->notebook = GTK_WIDGET(gtk_builder_get_object(builder, "notebook"));
     win->recent   = GTK_WIDGET(gtk_builder_get_object(builder, "recent"));
+    win->guestlog = GTK_CHECK_MENU_ITEM(gtk_builder_get_object(builder, "guestlog"));
 
     /* signals */
     gtk_builder_add_callback_symbols
@@ -955,9 +961,8 @@ static struct vconsole_window *vconsole_toplevel_create(void)
 #if 0
     item = gtk_ui_manager_get_widget(win->ui, "/MainMenu/ViewMenu/TerminalBlink");
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), win->tty_blink);
-    item = gtk_ui_manager_get_widget(win->ui, "/MainMenu/GuestMenu/GuestLogging");
-    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), win->vm_logging);
 #endif
+    gtk_check_menu_item_set_active(win->guestlog, win->vm_logging);
 
     return win;
 }

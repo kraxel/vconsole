@@ -168,7 +168,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkCheckMenuItem">
+                      <object class="GtkCheckMenuItem" id='guestlog'>
                         <property name="can_focus">False</property>
                         <property name="action_name">main.GuestLogging</property>
                         <property name="label" translatable="yes">_Log to file</property>
