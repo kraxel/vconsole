@@ -5,7 +5,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: meson
+    - name: install deps
+      run: apt-get install meson libgtk-3-dev libvte-2.91-dev libxml2-dev libvirt-dev libavahi-client-dev libavahi-glib-dev
+    - name: contigure (meson)
       run: meson build-test
-    - name: ninja
+    - name: compile (ninja)
       run: ninja -C build-test
