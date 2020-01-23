@@ -1,0 +1,11 @@
+name: build
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: meson
+      run: meson build-test
+    - name: ninja
+      run: ninja -C build-test
