@@ -418,6 +418,10 @@ static void run_virsh_edit(struct vconsole_domain *dom)
     }
 
     argv[argc++] = app;
+    if (dom->name) {
+        argv[argc++] = "-title";
+        argv[argc++] = dom->name;
+    }
     argv[argc++] = "-e";
     argv[argc++] = "virsh";
     argv[argc++] = "-c";

@@ -107,7 +107,7 @@ struct vconsole_domain {
     struct vconsole_connect   *conn;
     char                      uuid[VIR_UUID_STRING_BUFLEN];
     int                       id;
-    const char                *name;
+    char                      *name;
 
     GtkWidget                 *window, *vbox, *vte, *status;
     virStreamPtr              stream;
