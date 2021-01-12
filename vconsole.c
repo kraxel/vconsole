@@ -341,6 +341,28 @@ static struct vconsole_domain *find_guest(struct vconsole_window *win)
     return dom;
 }
 
+static bool is_installed(const char *name)
+{
+    char *path = strdup(getenv("PATH"));
+    char *elem, *binary, *ptr;
+    bool retval = false;
+    int rc;
+
+    for (elem = strtok_r(path, ":", &ptr);
+         elem != NULL;
+         elem = strtok_r(NULL, ":", &ptr)) {
+        binary = g_strdup_printf("%s/%s", elem, name);
+        rc = access(binary, X_OK);
+        g_free(binary);
+        if (rc == 0) {
+            retval = true;
+            break;
+        }
+    }
+    free(path);
+    return retval;
+}
+
 static void prepare_exec(void)
 {
     int i;
@@ -386,11 +408,16 @@ static void run_virsh_edit(struct vconsole_domain *dom)
 {
     char *argv[32];
     int argc = 0;
+    char *app = "xterm";
     char *uri;
 
     uri = virConnectGetURI(dom->conn->ptr);
 
-    argv[argc++] = "xterm";
+    if (is_installed("gterm")) {
+        app = "gterm";
+    }
+
+    argv[argc++] = app;
     argv[argc++] = "-e";
     argv[argc++] = "virsh";
     argv[argc++] = "-c";
@@ -407,7 +434,7 @@ static void run_virsh_edit(struct vconsole_domain *dom)
     } else {
         /* child */
         prepare_exec();
-        execvp("xterm", argv);
+        execvp(app, argv);
         perror("execvp");
         exit(1);
     }

@@ -24,7 +24,6 @@ configure_file(output : 'config.h', configuration : config)
 add_global_arguments(['-include', 'config.h'], language : 'c')
 
 # build & install
-
 stringify = find_program('./stringify.sh')
 main_ui   = custom_target('main-ui',
                           input   : ['main.ui'],
