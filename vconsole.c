@@ -398,6 +398,7 @@ static void run_virt_viewer(struct vconsole_domain *dom,
     } else {
         /* child */
         prepare_exec();
+        setenv("GDK_BACKEND", "x11", true);
         execvp("virt-viewer", argv);
         perror("execvp");
         exit(1);
