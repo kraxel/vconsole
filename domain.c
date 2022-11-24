@@ -328,7 +328,7 @@ static void domain_update_tree_store(struct vconsole_domain *dom,
 {
     bool darkmode = dom->conn->win->darkmode;
     const char *foreground;
-    char load[16], mem[16];
+    char load[20], mem[20];
     PangoWeight weight;
     int avgload;
 
@@ -653,7 +653,7 @@ void domain_update_all(struct vconsole_window *win)
     GtkTreeIter host, guest;
     struct vconsole_connect *conn;
     struct vconsole_domain *dom;
-    char mem[16];
+    char mem[20];
     virDomainPtr d;
     unsigned long memory, vcpus;
     int rc, domcount, errcount;
