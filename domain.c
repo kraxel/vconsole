@@ -622,7 +622,8 @@ void domain_update(struct vconsole_connect *conn,
         domain_free(dom);
         return;
     case VIR_DOMAIN_EVENT_STARTED:
-        domain_connect(dom, d);
+        if (dom->vbox)
+            domain_connect(dom, d);
         break;
     case VIR_DOMAIN_EVENT_STOPPED:
         domain_disconnect(dom, d);
