@@ -505,7 +505,18 @@ static void menu_cb_vm_run(GSimpleAction *action,
     struct vconsole_domain *dom = find_guest(win);
 
     if (dom)
-        domain_start(dom);
+        domain_start(dom, false);
+}
+
+static void menu_cb_vm_run_reset_nvram(GSimpleAction *action,
+                                       GVariant      *parameter,
+                                       gpointer       data)
+{
+    struct vconsole_window *win = data;
+    struct vconsole_domain *dom = find_guest(win);
+
+    if (dom)
+        domain_start(dom, true);
 }
 
 static void menu_cb_vm_run_gfx(GSimpleAction *action,
@@ -517,7 +528,7 @@ static void menu_cb_vm_run_gfx(GSimpleAction *action,
 
     if (dom) {
         run_virt_viewer(dom, false);
-        domain_start(dom);
+        domain_start(dom, false);
     }
 }
 
@@ -693,6 +704,9 @@ static const GActionEntry entries[] = {
     },{
 	.name        = "GuestRun",
 	.activate    = menu_cb_vm_run,
+    },{
+	.name        = "GuestRunResetNvram",
+	.activate    = menu_cb_vm_run_reset_nvram,
     },{
 	.name        = "GuestRunGfx",
 	.activate    = menu_cb_vm_run_gfx,

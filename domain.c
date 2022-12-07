@@ -249,7 +249,7 @@ static void domain_user_input(VteTerminal *vte, gchar *buf, guint len,
         virStreamSend(dom->stream, buf, len);
         return;
     }
-    domain_start(dom);
+    domain_start(dom, false);
 }
 
 static void domain_connect(struct vconsole_domain *dom, virDomainPtr d)
@@ -433,10 +433,13 @@ void domain_untabify(struct vconsole_domain *dom)
     gtk_widget_show_all(dom->window);
 }
 
-void domain_start(struct vconsole_domain *dom)
+void domain_start(struct vconsole_domain *dom, bool reset_nvram)
 {
     virDomainPtr d = virDomainLookupByUUIDString(dom->conn->ptr, dom->uuid);
     uint32_t flags = 0;
+
+    if (reset_nvram)
+        flags |= VIR_DOMAIN_START_RESET_NVRAM;
 
     domain_update_info(dom, d);
     switch (dom->info.state) {
